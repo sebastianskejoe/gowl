@@ -15,8 +15,6 @@ type Object interface {
 var objects map[int32]Object
 
 func init() {
-	__id = 0
-
 	objects = make(map[int32]Object)
 	objects[0] = nil
 }
@@ -28,6 +26,18 @@ func appendObject(obj Object) int32 {
 	return id
 }
 
+func removeObject(id int32) {
+	delete(objects, id)
+}
+
 func PrintObject(id int32) {
 	fmt.Printf("%d\n", objects[id].ID())
+}
+
+func printError(f string, err error) {
+	fmt.Println(f,"produced an error:",err)
+}
+
+func printRequest(name string, args ...interface{}) {
+	fmt.Println("->",name,"{",args,"}")
 }

@@ -6,9 +6,12 @@ import (
 
 
 func main() {
-	gowl.NewDisplay()
-	gowl.PrintObject(1)
+	c := make(chan bool)
+	d := gowl.NewDisplay(c)
+	d.Iterate()
+	d.Sync()
 
-	for {
-	}
+	d.Compositor.CreateSurface()
+
+	<-c
 }

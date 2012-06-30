@@ -3,69 +3,162 @@ package gowl
 import (
 	"encoding/binary"
 	"bytes"
-	"net"
 	"fmt"
 	"io"
+	"bufio"
+	"syscall"
+	"os"
+	"net"
 )
 
-func sendmsg(conn net.Conn, id int32, opcode int16, msg []byte) {
-	size := len(msg)
-	buf := new(bytes.Buffer)
-	binary.Write(buf, binary.LittleEndian, id)
-	binary.Write(buf, binary.LittleEndian, opcode)
-	binary.Write(buf, binary.LittleEndian, int16(size+8))
-	binary.Write(buf, binary.LittleEndian, msg)
-	fmt.Printf("Sending message %d\n", buf.Bytes())
-	fmt.Fprintf(conn, "%s", buf.Bytes())
+type Connection struct {
+	fd int
+	sockaddr syscall.Sockaddr
+	reader *bufio.Reader
+	writer *bufio.Writer
 }
 
-func readUint32(buf io.Reader) (uint32) {
-	var val uint32
-	binary.Read(buf, binary.LittleEndian, &val)
-	return val
-}
+var conn Connection
 
-func readInt32(buf io.Reader) (int32) {
-	var val int32
-	fmt.Println("Waiting for read")
-	err := binary.Read(buf, binary.LittleEndian, &val)
+func connect_to_socket() {
+	// Connect to socket
+	addr := fmt.Sprintf("%s/%s", os.Getenv("XDG_RUNTIME_DIR"), "wayland-0")
+	c,err := net.Dial("unix", addr)
 	if err != nil {
 		fmt.Println(err)
+		return
 	}
-	return val
+
+	conn.reader = bufio.NewReader(c)
+	conn.writer = bufio.NewWriter(c)
 }
 
-func readUint16(buf io.Reader) (uint16) {
+func getmsg() (id int32, opcode int16, size int16, msg []byte, remain int, err error) {
+	// Message header
+	id,err = readInt32(conn.reader)
+	if err != nil {
+		return
+	}
+	opcode,err = readInt16(conn.reader)
+	if err != nil {
+		return
+//		fmt.Println(opcode, err)
+//		break
+	}
+	size,err = readInt16(conn.reader)
+	if err != nil {
+		return
+//		fmt.Println(size, err)
+//		break
+	}
+
+	// Message
+	msg = make([]byte, size-8)
+	_,err = conn.reader.Read(msg)
+	if err != nil {
+		return
+//		printError("getmsg", err)
+//		break
+	}
+
+	remain = conn.reader.Buffered()
+
+	return
+}
+
+func sendmsg(obj Object, opcode int16, msg []byte) {
+	size := len(msg)
+	buf := new(bytes.Buffer)
+	writeInteger(buf, obj.ID())
+	writeInteger(buf, opcode)
+	writeInteger(buf, int16(size+8))
+	binary.Write(buf, binary.LittleEndian, msg)
+
+	err := binary.Write(conn.writer, binary.LittleEndian, buf.Bytes())
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	err = conn.writer.Flush()
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+}
+
+func readUint32(buf io.Reader) (uint32, error) {
+	var val uint32
+	err := binary.Read(buf, binary.LittleEndian, &val)
+	if err != nil {
+		return val, err
+	}
+	return val, nil
+}
+
+func readInt32(c io.Reader) (int32, error) {
+	var val int32
+	err := binary.Read(c, binary.LittleEndian, &val)
+	if err != nil {
+		return val, err
+	}
+	return val, nil
+}
+
+func readUint16(c io.Reader) (uint16, error) {
 	var val uint16
-	binary.Read(buf, binary.LittleEndian, &val)
-	return val
+	err := binary.Read(c, binary.LittleEndian, &val)
+	if err != nil {
+		return val, err
+	}
+	return val, nil
 }
 
-func readInt16(buf io.Reader) (int16) {
+func readInt16(c io.Reader) (int16, error) {
 	var val int16
-	binary.Read(buf, binary.LittleEndian, &val)
-	return val
+	err := binary.Read(c, binary.LittleEndian, &val)
+	if err != nil {
+		return val, err
+	}
+	return val, nil
 }
 
-func readString(buf io.Reader) (uint32, []byte) {
+func readString(c io.Reader) (uint32, []byte, error) {
 	// First get string length
-	strlen := readUint32(buf)
+	strlen, err := readUint32(c)
+	if err != nil {
+		return 0, []byte{}, err
+	}
 	// Now get string
 	str := make([]byte, strlen)
-	buf.Read(str)
+	_,err = c.Read(str)
+	if err != nil {
+		return 0, []byte{}, err
+	}
 
-	return strlen, str
+	pad := 4-(strlen % 4)
+	if pad == 4 {
+		pad = 0
+	}
+	for i := uint32(0) ; i < pad ; i++ {
+		binary.Read(c, binary.LittleEndian, []byte{0})
+	}
+	return strlen, str, nil
 }
 
-func writeInteger(buf io.Writer, val interface{}) {
-	binary.Write(buf, binary.LittleEndian, val)
+func writeInteger(c io.Writer, val interface{}) {
+	binary.Write(c, binary.LittleEndian, val)
 }
 
-func writeString(buf io.Writer, val []byte) {
-	writeInteger(buf, int32(len(val)))
-	binary.Write(buf, binary.LittleEndian, val)
-	pad := len(val) % 4
+func writeString(c io.Writer, val []byte) {
+	// First get padding
+	pad := 4-(len(val) % 4)
+	if pad == 4 {
+		pad = 0
+	}
+
+	writeInteger(c, int32(len(val)+pad))
+	binary.Write(c, binary.LittleEndian, val)
 	for i := 0 ; i < pad ; i++ {
-		binary.Write(buf, binary.LittleEndian, '0')
+		binary.Write(c, binary.LittleEndian, []byte{0})
 	}
 }
