@@ -6,11 +6,6 @@ import (
 
 var __id int32
 
-type Object interface {
-	HandleEvent(opcode int16, msg []byte)
-	SetID(id int32)
-	ID() int32
-}
 
 var objects map[int32]Object
 
