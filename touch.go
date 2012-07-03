@@ -6,7 +6,9 @@ import (
 )
 
 type Touch struct {
-	*WlObject
+//	*WlObject
+	id int32
+	listeners map[int16][]chan interface{}
 	events []func (t *Touch, msg []byte)
 }
 
@@ -196,7 +198,7 @@ func touch_cancel(t *Touch, msg []byte) {
 
 func NewTouch() (t *Touch) {
 	t = new(Touch)
-	t.listeners = make(map[int16]chan interface{}, 0)
+	t.listeners = make(map[int16][]chan interface{}, 0)
 
 	t.events = append(t.events, touch_down)
 	t.events = append(t.events, touch_up)

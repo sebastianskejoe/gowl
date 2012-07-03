@@ -6,7 +6,9 @@ import (
 )
 
 type Compositor struct {
-	*WlObject
+//	*WlObject
+	id int32
+	listeners map[int16][]chan interface{}
 	events []func (c *Compositor, msg []byte)
 }
 
@@ -36,7 +38,7 @@ func (c *Compositor) HandleEvent(opcode int16, msg []byte) {
 
 func NewCompositor() (c *Compositor) {
 	c = new(Compositor)
-	c.listeners = make(map[int16]chan interface{}, 0)
+	c.listeners = make(map[int16][]chan interface{}, 0)
 
 	return
 }

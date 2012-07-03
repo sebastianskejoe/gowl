@@ -6,7 +6,9 @@ import (
 )
 
 type Keyboard struct {
-	*WlObject
+//	*WlObject
+	id int32
+	listeners map[int16][]chan interface{}
 	events []func (k *Keyboard, msg []byte)
 }
 
@@ -228,7 +230,7 @@ func keyboard_modifiers(k *Keyboard, msg []byte) {
 
 func NewKeyboard() (k *Keyboard) {
 	k = new(Keyboard)
-	k.listeners = make(map[int16]chan interface{}, 0)
+	k.listeners = make(map[int16][]chan interface{}, 0)
 
 	k.events = append(k.events, keyboard_keymap)
 	k.events = append(k.events, keyboard_enter)

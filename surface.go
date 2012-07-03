@@ -6,7 +6,9 @@ import (
 )
 
 type Surface struct {
-	*WlObject
+//	*WlObject
+	id int32
+	listeners map[int16][]chan interface{}
 	events []func (s *Surface, msg []byte)
 }
 
@@ -119,7 +121,7 @@ func surface_leave(s *Surface, msg []byte) {
 
 func NewSurface() (s *Surface) {
 	s = new(Surface)
-	s.listeners = make(map[int16]chan interface{}, 0)
+	s.listeners = make(map[int16][]chan interface{}, 0)
 
 	s.events = append(s.events, surface_enter)
 	s.events = append(s.events, surface_leave)

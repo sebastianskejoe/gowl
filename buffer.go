@@ -6,7 +6,9 @@ import (
 )
 
 type Buffer struct {
-	*WlObject
+//	*WlObject
+	id int32
+	listeners map[int16][]chan interface{}
 	events []func (b *Buffer, msg []byte)
 }
 
@@ -42,7 +44,7 @@ func buffer_release(b *Buffer, msg []byte) {
 
 func NewBuffer() (b *Buffer) {
 	b = new(Buffer)
-	b.listeners = make(map[int16]chan interface{}, 0)
+	b.listeners = make(map[int16][]chan interface{}, 0)
 
 	b.events = append(b.events, buffer_release)
 	return

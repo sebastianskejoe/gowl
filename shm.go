@@ -6,7 +6,9 @@ import (
 )
 
 type Shm struct {
-	*WlObject
+//	*WlObject
+	id int32
+	listeners map[int16][]chan interface{}
 	events []func (s *Shm, msg []byte)
 }
 
@@ -54,7 +56,7 @@ func shm_format(s *Shm, msg []byte) {
 
 func NewShm() (s *Shm) {
 	s = new(Shm)
-	s.listeners = make(map[int16]chan interface{}, 0)
+	s.listeners = make(map[int16][]chan interface{}, 0)
 
 	s.events = append(s.events, shm_format)
 	return

@@ -6,7 +6,9 @@ import (
 )
 
 type Shell_surface struct {
-	*WlObject
+//	*WlObject
+	id int32
+	listeners map[int16][]chan interface{}
 	events []func (s *Shell_surface, msg []byte)
 }
 
@@ -180,7 +182,7 @@ func shell_surface_popup_done(s *Shell_surface, msg []byte) {
 
 func NewShell_surface() (s *Shell_surface) {
 	s = new(Shell_surface)
-	s.listeners = make(map[int16]chan interface{}, 0)
+	s.listeners = make(map[int16][]chan interface{}, 0)
 
 	s.events = append(s.events, shell_surface_ping)
 	s.events = append(s.events, shell_surface_configure)

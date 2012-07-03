@@ -6,7 +6,9 @@ import (
 )
 
 type Region struct {
-	*WlObject
+//	*WlObject
+	id int32
+	listeners map[int16][]chan interface{}
 	events []func (r *Region, msg []byte)
 }
 
@@ -46,7 +48,7 @@ func (r *Region) HandleEvent(opcode int16, msg []byte) {
 
 func NewRegion() (r *Region) {
 	r = new(Region)
-	r.listeners = make(map[int16]chan interface{}, 0)
+	r.listeners = make(map[int16][]chan interface{}, 0)
 
 	return
 }

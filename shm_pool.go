@@ -6,7 +6,9 @@ import (
 )
 
 type Shm_pool struct {
-	*WlObject
+//	*WlObject
+	id int32
+	listeners map[int16][]chan interface{}
 	events []func (s *Shm_pool, msg []byte)
 }
 
@@ -46,7 +48,7 @@ func (s *Shm_pool) HandleEvent(opcode int16, msg []byte) {
 
 func NewShm_pool() (s *Shm_pool) {
 	s = new(Shm_pool)
-	s.listeners = make(map[int16]chan interface{}, 0)
+	s.listeners = make(map[int16][]chan interface{}, 0)
 
 	return
 }

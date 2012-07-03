@@ -6,7 +6,9 @@ import (
 )
 
 type Data_device_manager struct {
-	*WlObject
+//	*WlObject
+	id int32
+	listeners map[int16][]chan interface{}
 	events []func (d *Data_device_manager, msg []byte)
 }
 
@@ -37,7 +39,7 @@ func (d *Data_device_manager) HandleEvent(opcode int16, msg []byte) {
 
 func NewData_device_manager() (d *Data_device_manager) {
 	d = new(Data_device_manager)
-	d.listeners = make(map[int16]chan interface{}, 0)
+	d.listeners = make(map[int16][]chan interface{}, 0)
 
 	return
 }

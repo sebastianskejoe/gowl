@@ -6,7 +6,9 @@ import (
 )
 
 type Seat struct {
-	*WlObject
+//	*WlObject
+	id int32
+	listeners map[int16][]chan interface{}
 	events []func (s *Seat, msg []byte)
 }
 
@@ -68,7 +70,7 @@ func seat_capabilities(s *Seat, msg []byte) {
 
 func NewSeat() (s *Seat) {
 	s = new(Seat)
-	s.listeners = make(map[int16]chan interface{}, 0)
+	s.listeners = make(map[int16][]chan interface{}, 0)
 
 	s.events = append(s.events, seat_capabilities)
 	return

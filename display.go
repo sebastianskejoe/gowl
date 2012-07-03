@@ -6,7 +6,9 @@ import (
 )
 
 type Display struct {
-	*WlObject
+//	*WlObject
+	id int32
+	listeners map[int16][]chan interface{}
 	events []func (d *Display, msg []byte)
 }
 
@@ -165,7 +167,7 @@ func display_delete_id(d *Display, msg []byte) {
 
 func NewDisplay() (d *Display) {
 	d = new(Display)
-	d.listeners = make(map[int16]chan interface{}, 0)
+	d.listeners = make(map[int16][]chan interface{}, 0)
 
 	d.events = append(d.events, display_error)
 	d.events = append(d.events, display_global)

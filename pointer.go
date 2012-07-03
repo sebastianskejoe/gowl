@@ -6,7 +6,9 @@ import (
 )
 
 type Pointer struct {
-	*WlObject
+//	*WlObject
+	id int32
+	listeners map[int16][]chan interface{}
 	events []func (p *Pointer, msg []byte)
 }
 
@@ -231,7 +233,7 @@ func pointer_axis(p *Pointer, msg []byte) {
 
 func NewPointer() (p *Pointer) {
 	p = new(Pointer)
-	p.listeners = make(map[int16]chan interface{}, 0)
+	p.listeners = make(map[int16][]chan interface{}, 0)
 
 	p.events = append(p.events, pointer_enter)
 	p.events = append(p.events, pointer_leave)

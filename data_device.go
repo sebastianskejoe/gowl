@@ -6,7 +6,9 @@ import (
 )
 
 type Data_device struct {
-	*WlObject
+//	*WlObject
+	id int32
+	listeners map[int16][]chan interface{}
 	events []func (d *Data_device, msg []byte)
 }
 
@@ -216,7 +218,7 @@ func data_device_selection(d *Data_device, msg []byte) {
 
 func NewData_device() (d *Data_device) {
 	d = new(Data_device)
-	d.listeners = make(map[int16]chan interface{}, 0)
+	d.listeners = make(map[int16][]chan interface{}, 0)
 
 	d.events = append(d.events, data_device_data_offer)
 	d.events = append(d.events, data_device_enter)

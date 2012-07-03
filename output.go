@@ -6,7 +6,9 @@ import (
 )
 
 type Output struct {
-	*WlObject
+//	*WlObject
+	id int32
+	listeners map[int16][]chan interface{}
 	events []func (o *Output, msg []byte)
 }
 
@@ -131,7 +133,7 @@ func output_mode(o *Output, msg []byte) {
 
 func NewOutput() (o *Output) {
 	o = new(Output)
-	o.listeners = make(map[int16]chan interface{}, 0)
+	o.listeners = make(map[int16][]chan interface{}, 0)
 
 	o.events = append(o.events, output_geometry)
 	o.events = append(o.events, output_mode)

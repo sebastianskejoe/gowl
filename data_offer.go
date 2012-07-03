@@ -6,7 +6,9 @@ import (
 )
 
 type Data_offer struct {
-	*WlObject
+//	*WlObject
+	id int32
+	listeners map[int16][]chan interface{}
 	events []func (d *Data_offer, msg []byte)
 }
 
@@ -66,7 +68,7 @@ func data_offer_offer(d *Data_offer, msg []byte) {
 
 func NewData_offer() (d *Data_offer) {
 	d = new(Data_offer)
-	d.listeners = make(map[int16]chan interface{}, 0)
+	d.listeners = make(map[int16][]chan interface{}, 0)
 
 	d.events = append(d.events, data_offer_offer)
 	return

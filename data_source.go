@@ -6,7 +6,9 @@ import (
 )
 
 type Data_source struct {
-	*WlObject
+//	*WlObject
+	id int32
+	listeners map[int16][]chan interface{}
 	events []func (d *Data_source, msg []byte)
 }
 
@@ -104,7 +106,7 @@ func data_source_cancelled(d *Data_source, msg []byte) {
 
 func NewData_source() (d *Data_source) {
 	d = new(Data_source)
-	d.listeners = make(map[int16]chan interface{}, 0)
+	d.listeners = make(map[int16][]chan interface{}, 0)
 
 	d.events = append(d.events, data_source_target)
 	d.events = append(d.events, data_source_send)

@@ -6,7 +6,9 @@ import (
 )
 
 type Callback struct {
-	*WlObject
+//	*WlObject
+	id int32
+	listeners map[int16][]chan interface{}
 	events []func (c *Callback, msg []byte)
 }
 
@@ -44,7 +46,7 @@ func callback_done(c *Callback, msg []byte) {
 
 func NewCallback() (c *Callback) {
 	c = new(Callback)
-	c.listeners = make(map[int16]chan interface{}, 0)
+	c.listeners = make(map[int16][]chan interface{}, 0)
 
 	c.events = append(c.events, callback_done)
 	return
