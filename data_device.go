@@ -43,7 +43,7 @@ type Data_deviceData_offer struct {
 }
 
 func (d *Data_device) AddData_offerListener(channel chan interface{}) {
-	d.addListener(0, channel)
+	d.listeners[0] = append(d.listeners[0], channel)
 }
 
 func data_device_data_offer(d *Data_device, msg []byte) {
@@ -73,7 +73,7 @@ type Data_deviceEnter struct {
 }
 
 func (d *Data_device) AddEnterListener(channel chan interface{}) {
-	d.addListener(1, channel)
+	d.listeners[1] = append(d.listeners[1], channel)
 }
 
 func data_device_enter(d *Data_device, msg []byte) {
@@ -124,7 +124,7 @@ type Data_deviceLeave struct {
 }
 
 func (d *Data_device) AddLeaveListener(channel chan interface{}) {
-	d.addListener(2, channel)
+	d.listeners[2] = append(d.listeners[2], channel)
 }
 
 func data_device_leave(d *Data_device, msg []byte) {
@@ -143,7 +143,7 @@ type Data_deviceMotion struct {
 }
 
 func (d *Data_device) AddMotionListener(channel chan interface{}) {
-	d.addListener(3, channel)
+	d.listeners[3] = append(d.listeners[3], channel)
 }
 
 func data_device_motion(d *Data_device, msg []byte) {
@@ -178,7 +178,7 @@ type Data_deviceDrop struct {
 }
 
 func (d *Data_device) AddDropListener(channel chan interface{}) {
-	d.addListener(4, channel)
+	d.listeners[4] = append(d.listeners[4], channel)
 }
 
 func data_device_drop(d *Data_device, msg []byte) {
@@ -195,7 +195,7 @@ type Data_deviceSelection struct {
 }
 
 func (d *Data_device) AddSelectionListener(channel chan interface{}) {
-	d.addListener(5, channel)
+	d.listeners[5] = append(d.listeners[5], channel)
 }
 
 func data_device_selection(d *Data_device, msg []byte) {
@@ -227,4 +227,12 @@ func NewData_device() (d *Data_device) {
 	d.events = append(d.events, data_device_drop)
 	d.events = append(d.events, data_device_selection)
 	return
+}
+
+func (d *Data_device) SetId(id int32) {
+	d.id = id
+}
+
+func (d *Data_device) Id() int32 {
+	return d.id
 }

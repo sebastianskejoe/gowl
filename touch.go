@@ -30,7 +30,7 @@ type TouchDown struct {
 }
 
 func (t *Touch) AddDownListener(channel chan interface{}) {
-	t.addListener(0, channel)
+	t.listeners[0] = append(t.listeners[0], channel)
 }
 
 func touch_down(t *Touch, msg []byte) {
@@ -88,7 +88,7 @@ type TouchUp struct {
 }
 
 func (t *Touch) AddUpListener(channel chan interface{}) {
-	t.addListener(1, channel)
+	t.listeners[1] = append(t.listeners[1], channel)
 }
 
 func touch_up(t *Touch, msg []byte) {
@@ -127,7 +127,7 @@ type TouchMotion struct {
 }
 
 func (t *Touch) AddMotionListener(channel chan interface{}) {
-	t.addListener(2, channel)
+	t.listeners[2] = append(t.listeners[2], channel)
 }
 
 func touch_motion(t *Touch, msg []byte) {
@@ -168,7 +168,7 @@ type TouchFrame struct {
 }
 
 func (t *Touch) AddFrameListener(channel chan interface{}) {
-	t.addListener(3, channel)
+	t.listeners[3] = append(t.listeners[3], channel)
 }
 
 func touch_frame(t *Touch, msg []byte) {
@@ -184,7 +184,7 @@ type TouchCancel struct {
 }
 
 func (t *Touch) AddCancelListener(channel chan interface{}) {
-	t.addListener(4, channel)
+	t.listeners[4] = append(t.listeners[4], channel)
 }
 
 func touch_cancel(t *Touch, msg []byte) {
@@ -206,4 +206,12 @@ func NewTouch() (t *Touch) {
 	t.events = append(t.events, touch_frame)
 	t.events = append(t.events, touch_cancel)
 	return
+}
+
+func (t *Touch) SetId(id int32) {
+	t.id = id
+}
+
+func (t *Touch) Id() int32 {
+	return t.id
 }

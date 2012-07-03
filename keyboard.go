@@ -27,7 +27,7 @@ type KeyboardKeymap struct {
 }
 
 func (k *Keyboard) AddKeymapListener(channel chan interface{}) {
-	k.addListener(0, channel)
+	k.listeners[0] = append(k.listeners[0], channel)
 }
 
 func keyboard_keymap(k *Keyboard, msg []byte) {
@@ -65,7 +65,7 @@ type KeyboardEnter struct {
 }
 
 func (k *Keyboard) AddEnterListener(channel chan interface{}) {
-	k.addListener(1, channel)
+	k.listeners[1] = append(k.listeners[1], channel)
 }
 
 func keyboard_enter(k *Keyboard, msg []byte) {
@@ -104,7 +104,7 @@ type KeyboardLeave struct {
 }
 
 func (k *Keyboard) AddLeaveListener(channel chan interface{}) {
-	k.addListener(2, channel)
+	k.listeners[2] = append(k.listeners[2], channel)
 }
 
 func keyboard_leave(k *Keyboard, msg []byte) {
@@ -139,7 +139,7 @@ type KeyboardKey struct {
 }
 
 func (k *Keyboard) AddKeyListener(channel chan interface{}) {
-	k.addListener(3, channel)
+	k.listeners[3] = append(k.listeners[3], channel)
 }
 
 func keyboard_key(k *Keyboard, msg []byte) {
@@ -185,7 +185,7 @@ type KeyboardModifiers struct {
 }
 
 func (k *Keyboard) AddModifiersListener(channel chan interface{}) {
-	k.addListener(4, channel)
+	k.listeners[4] = append(k.listeners[4], channel)
 }
 
 func keyboard_modifiers(k *Keyboard, msg []byte) {
@@ -238,4 +238,12 @@ func NewKeyboard() (k *Keyboard) {
 	k.events = append(k.events, keyboard_key)
 	k.events = append(k.events, keyboard_modifiers)
 	return
+}
+
+func (k *Keyboard) SetId(id int32) {
+	k.id = id
+}
+
+func (k *Keyboard) Id() int32 {
+	return k.id
 }

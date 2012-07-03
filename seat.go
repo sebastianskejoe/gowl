@@ -49,7 +49,7 @@ type SeatCapabilities struct {
 }
 
 func (s *Seat) AddCapabilitiesListener(channel chan interface{}) {
-	s.addListener(0, channel)
+	s.listeners[0] = append(s.listeners[0], channel)
 }
 
 func seat_capabilities(s *Seat, msg []byte) {
@@ -74,4 +74,12 @@ func NewSeat() (s *Seat) {
 
 	s.events = append(s.events, seat_capabilities)
 	return
+}
+
+func (s *Seat) SetId(id int32) {
+	s.id = id
+}
+
+func (s *Seat) Id() int32 {
+	return s.id
 }

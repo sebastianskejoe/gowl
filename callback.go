@@ -25,7 +25,7 @@ type CallbackDone struct {
 }
 
 func (c *Callback) AddDoneListener(channel chan interface{}) {
-	c.addListener(0, channel)
+	c.listeners[0] = append(c.listeners[0], channel)
 }
 
 func callback_done(c *Callback, msg []byte) {
@@ -50,4 +50,12 @@ func NewCallback() (c *Callback) {
 
 	c.events = append(c.events, callback_done)
 	return
+}
+
+func (c *Callback) SetId(id int32) {
+	c.id = id
+}
+
+func (c *Callback) Id() int32 {
+	return c.id
 }

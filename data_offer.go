@@ -47,7 +47,7 @@ type Data_offerOffer struct {
 }
 
 func (d *Data_offer) AddOfferListener(channel chan interface{}) {
-	d.addListener(0, channel)
+	d.listeners[0] = append(d.listeners[0], channel)
 }
 
 func data_offer_offer(d *Data_offer, msg []byte) {
@@ -72,4 +72,12 @@ func NewData_offer() (d *Data_offer) {
 
 	d.events = append(d.events, data_offer_offer)
 	return
+}
+
+func (d *Data_offer) SetId(id int32) {
+	d.id = id
+}
+
+func (d *Data_offer) Id() int32 {
+	return d.id
 }

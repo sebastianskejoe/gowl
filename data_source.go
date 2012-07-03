@@ -38,7 +38,7 @@ type Data_sourceTarget struct {
 }
 
 func (d *Data_source) AddTargetListener(channel chan interface{}) {
-	d.addListener(0, channel)
+	d.listeners[0] = append(d.listeners[0], channel)
 }
 
 func data_source_target(d *Data_source, msg []byte) {
@@ -63,7 +63,7 @@ type Data_sourceSend struct {
 }
 
 func (d *Data_source) AddSendListener(channel chan interface{}) {
-	d.addListener(1, channel)
+	d.listeners[1] = append(d.listeners[1], channel)
 }
 
 func data_source_send(d *Data_source, msg []byte) {
@@ -92,7 +92,7 @@ type Data_sourceCancelled struct {
 }
 
 func (d *Data_source) AddCancelledListener(channel chan interface{}) {
-	d.addListener(2, channel)
+	d.listeners[2] = append(d.listeners[2], channel)
 }
 
 func data_source_cancelled(d *Data_source, msg []byte) {
@@ -112,4 +112,12 @@ func NewData_source() (d *Data_source) {
 	d.events = append(d.events, data_source_send)
 	d.events = append(d.events, data_source_cancelled)
 	return
+}
+
+func (d *Data_source) SetId(id int32) {
+	d.id = id
+}
+
+func (d *Data_source) Id() int32 {
+	return d.id
 }

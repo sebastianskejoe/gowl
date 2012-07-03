@@ -35,3 +35,11 @@ func NewShell() (s *Shell) {
 
 	return
 }
+
+func (s *Shell) SetId(id int32) {
+	s.id = id
+}
+
+func (s *Shell) Id() int32 {
+	return s.id
+}

@@ -52,3 +52,11 @@ func NewShm_pool() (s *Shm_pool) {
 
 	return
 }
+
+func (s *Shm_pool) SetId(id int32) {
+	s.id = id
+}
+
+func (s *Shm_pool) Id() int32 {
+	return s.id
+}

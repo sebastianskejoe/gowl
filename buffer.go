@@ -30,7 +30,7 @@ type BufferRelease struct {
 }
 
 func (b *Buffer) AddReleaseListener(channel chan interface{}) {
-	b.addListener(0, channel)
+	b.listeners[0] = append(b.listeners[0], channel)
 }
 
 func buffer_release(b *Buffer, msg []byte) {
@@ -48,4 +48,12 @@ func NewBuffer() (b *Buffer) {
 
 	b.events = append(b.events, buffer_release)
 	return
+}
+
+func (b *Buffer) SetId(id int32) {
+	b.id = id
+}
+
+func (b *Buffer) Id() int32 {
+	return b.id
 }

@@ -42,3 +42,11 @@ func NewCompositor() (c *Compositor) {
 
 	return
 }
+
+func (c *Compositor) SetId(id int32) {
+	c.id = id
+}
+
+func (c *Compositor) Id() int32 {
+	return c.id
+}

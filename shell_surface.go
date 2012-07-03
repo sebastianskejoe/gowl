@@ -107,7 +107,7 @@ type Shell_surfacePing struct {
 }
 
 func (s *Shell_surface) AddPingListener(channel chan interface{}) {
-	s.addListener(0, channel)
+	s.listeners[0] = append(s.listeners[0], channel)
 }
 
 func shell_surface_ping(s *Shell_surface, msg []byte) {
@@ -133,7 +133,7 @@ type Shell_surfaceConfigure struct {
 }
 
 func (s *Shell_surface) AddConfigureListener(channel chan interface{}) {
-	s.addListener(1, channel)
+	s.listeners[1] = append(s.listeners[1], channel)
 }
 
 func shell_surface_configure(s *Shell_surface, msg []byte) {
@@ -168,7 +168,7 @@ type Shell_surfacePopup_done struct {
 }
 
 func (s *Shell_surface) AddPopup_doneListener(channel chan interface{}) {
-	s.addListener(2, channel)
+	s.listeners[2] = append(s.listeners[2], channel)
 }
 
 func shell_surface_popup_done(s *Shell_surface, msg []byte) {
@@ -188,4 +188,12 @@ func NewShell_surface() (s *Shell_surface) {
 	s.events = append(s.events, shell_surface_configure)
 	s.events = append(s.events, shell_surface_popup_done)
 	return
+}
+
+func (s *Shell_surface) SetId(id int32) {
+	s.id = id
+}
+
+func (s *Shell_surface) Id() int32 {
+	return s.id
 }

@@ -46,7 +46,7 @@ type DisplayError struct {
 }
 
 func (d *Display) AddErrorListener(channel chan interface{}) {
-	d.addListener(0, channel)
+	d.listeners[0] = append(d.listeners[0], channel)
 }
 
 func display_error(d *Display, msg []byte) {
@@ -86,7 +86,7 @@ type DisplayGlobal struct {
 }
 
 func (d *Display) AddGlobalListener(channel chan interface{}) {
-	d.addListener(1, channel)
+	d.listeners[1] = append(d.listeners[1], channel)
 }
 
 func display_global(d *Display, msg []byte) {
@@ -122,7 +122,7 @@ type DisplayGlobal_remove struct {
 }
 
 func (d *Display) AddGlobal_removeListener(channel chan interface{}) {
-	d.addListener(2, channel)
+	d.listeners[2] = append(d.listeners[2], channel)
 }
 
 func display_global_remove(d *Display, msg []byte) {
@@ -146,7 +146,7 @@ type DisplayDelete_id struct {
 }
 
 func (d *Display) AddDelete_idListener(channel chan interface{}) {
-	d.addListener(3, channel)
+	d.listeners[3] = append(d.listeners[3], channel)
 }
 
 func display_delete_id(d *Display, msg []byte) {
@@ -174,4 +174,12 @@ func NewDisplay() (d *Display) {
 	d.events = append(d.events, display_global_remove)
 	d.events = append(d.events, display_delete_id)
 	return
+}
+
+func (d *Display) SetId(id int32) {
+	d.id = id
+}
+
+func (d *Display) Id() int32 {
+	return d.id
 }

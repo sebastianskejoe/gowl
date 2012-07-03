@@ -38,7 +38,7 @@ type PointerEnter struct {
 }
 
 func (p *Pointer) AddEnterListener(channel chan interface{}) {
-	p.addListener(0, channel)
+	p.listeners[0] = append(p.listeners[0], channel)
 }
 
 func pointer_enter(p *Pointer, msg []byte) {
@@ -83,7 +83,7 @@ type PointerLeave struct {
 }
 
 func (p *Pointer) AddLeaveListener(channel chan interface{}) {
-	p.addListener(1, channel)
+	p.listeners[1] = append(p.listeners[1], channel)
 }
 
 func pointer_leave(p *Pointer, msg []byte) {
@@ -117,7 +117,7 @@ type PointerMotion struct {
 }
 
 func (p *Pointer) AddMotionListener(channel chan interface{}) {
-	p.addListener(2, channel)
+	p.listeners[2] = append(p.listeners[2], channel)
 }
 
 func pointer_motion(p *Pointer, msg []byte) {
@@ -156,7 +156,7 @@ type PointerButton struct {
 }
 
 func (p *Pointer) AddButtonListener(channel chan interface{}) {
-	p.addListener(3, channel)
+	p.listeners[3] = append(p.listeners[3], channel)
 }
 
 func pointer_button(p *Pointer, msg []byte) {
@@ -200,7 +200,7 @@ type PointerAxis struct {
 }
 
 func (p *Pointer) AddAxisListener(channel chan interface{}) {
-	p.addListener(4, channel)
+	p.listeners[4] = append(p.listeners[4], channel)
 }
 
 func pointer_axis(p *Pointer, msg []byte) {
@@ -241,4 +241,12 @@ func NewPointer() (p *Pointer) {
 	p.events = append(p.events, pointer_button)
 	p.events = append(p.events, pointer_axis)
 	return
+}
+
+func (p *Pointer) SetId(id int32) {
+	p.id = id
+}
+
+func (p *Pointer) Id() int32 {
+	return p.id
 }

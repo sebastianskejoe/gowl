@@ -31,7 +31,7 @@ type OutputGeometry struct {
 }
 
 func (o *Output) AddGeometryListener(channel chan interface{}) {
-	o.addListener(0, channel)
+	o.listeners[0] = append(o.listeners[0], channel)
 }
 
 func output_geometry(o *Output, msg []byte) {
@@ -94,7 +94,7 @@ type OutputMode struct {
 }
 
 func (o *Output) AddModeListener(channel chan interface{}) {
-	o.addListener(1, channel)
+	o.listeners[1] = append(o.listeners[1], channel)
 }
 
 func output_mode(o *Output, msg []byte) {
@@ -138,4 +138,12 @@ func NewOutput() (o *Output) {
 	o.events = append(o.events, output_geometry)
 	o.events = append(o.events, output_mode)
 	return
+}
+
+func (o *Output) SetId(id int32) {
+	o.id = id
+}
+
+func (o *Output) Id() int32 {
+	return o.id
 }

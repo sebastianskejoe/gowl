@@ -35,7 +35,7 @@ type ShmFormat struct {
 }
 
 func (s *Shm) AddFormatListener(channel chan interface{}) {
-	s.addListener(0, channel)
+	s.listeners[0] = append(s.listeners[0], channel)
 }
 
 func shm_format(s *Shm, msg []byte) {
@@ -60,4 +60,12 @@ func NewShm() (s *Shm) {
 
 	s.events = append(s.events, shm_format)
 	return
+}
+
+func (s *Shm) SetId(id int32) {
+	s.id = id
+}
+
+func (s *Shm) Id() int32 {
+	return s.id
 }

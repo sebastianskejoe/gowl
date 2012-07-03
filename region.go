@@ -52,3 +52,11 @@ func NewRegion() (r *Region) {
 
 	return
 }
+
+func (r *Region) SetId(id int32) {
+	r.id = id
+}
+
+func (r *Region) Id() int32 {
+	return r.id
+}

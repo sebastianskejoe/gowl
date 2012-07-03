@@ -72,7 +72,7 @@ type SurfaceEnter struct {
 }
 
 func (s *Surface) AddEnterListener(channel chan interface{}) {
-	s.addListener(0, channel)
+	s.listeners[0] = append(s.listeners[0], channel)
 }
 
 func surface_enter(s *Surface, msg []byte) {
@@ -98,7 +98,7 @@ type SurfaceLeave struct {
 }
 
 func (s *Surface) AddLeaveListener(channel chan interface{}) {
-	s.addListener(1, channel)
+	s.listeners[1] = append(s.listeners[1], channel)
 }
 
 func surface_leave(s *Surface, msg []byte) {
@@ -126,4 +126,12 @@ func NewSurface() (s *Surface) {
 	s.events = append(s.events, surface_enter)
 	s.events = append(s.events, surface_leave)
 	return
+}
+
+func (s *Surface) SetId(id int32) {
+	s.id = id
+}
+
+func (s *Surface) Id() int32 {
+	return s.id
 }

@@ -43,3 +43,11 @@ func NewData_device_manager() (d *Data_device_manager) {
 
 	return
 }
+
+func (d *Data_device_manager) SetId(id int32) {
+	d.id = id
+}
+
+func (d *Data_device_manager) Id() int32 {
+	return d.id
+}
