@@ -17,8 +17,16 @@ func init() {
 func appendObject(obj Object) int32 {
 	id := int32(len(objects))
 	objects[id] = obj
-	obj.SetID(id)
+	obj.SetId(id)
 	return id
+}
+
+func setObject(id int32, obj Object) {
+	objects[id] = obj
+}
+
+func getObject(id int32) Object {
+	return objects[id]
 }
 
 func removeObject(id int32) {
@@ -26,7 +34,7 @@ func removeObject(id int32) {
 }
 
 func PrintObject(id int32) {
-	fmt.Printf("%d\n", objects[id].ID())
+	fmt.Printf("%d\n", objects[id].Id())
 }
 
 func printError(f string, err error) {

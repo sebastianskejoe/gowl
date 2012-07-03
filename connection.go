@@ -69,7 +69,7 @@ func getmsg() (id int32, opcode int16, size int16, msg []byte, remain int, err e
 func sendmsg(obj Object, opcode int16, msg []byte) {
 	size := len(msg)
 	buf := new(bytes.Buffer)
-	writeInteger(buf, obj.ID())
+	writeInteger(buf, obj.Id())
 	writeInteger(buf, opcode)
 	writeInteger(buf, int16(size+8))
 	binary.Write(buf, binary.LittleEndian, msg)
@@ -84,6 +84,15 @@ func sendmsg(obj Object, opcode int16, msg []byte) {
 		fmt.Println(err)
 		return
 	}
+}
+
+func readUintptr(buf io.Reader) (uintptr, error) {
+	var val uintptr
+	err := binary.Read(buf, binary.LittleEndian, &val)
+	if err != nil {
+		return val, err
+	}
+	return val, nil
 }
 
 func readUint32(buf io.Reader) (uint32, error) {
@@ -122,17 +131,17 @@ func readInt16(c io.Reader) (int16, error) {
 	return val, nil
 }
 
-func readString(c io.Reader) (uint32, []byte, error) {
+func readString(c io.Reader) (uint32, string, error) {
 	// First get string length
 	strlen, err := readUint32(c)
 	if err != nil {
-		return 0, []byte{}, err
+		return 0, "", err
 	}
 	// Now get string
 	str := make([]byte, strlen)
 	_,err = c.Read(str)
 	if err != nil {
-		return 0, []byte{}, err
+		return 0, "", err
 	}
 
 	pad := 4-(strlen % 4)
@@ -142,8 +151,10 @@ func readString(c io.Reader) (uint32, []byte, error) {
 	for i := uint32(0) ; i < pad ; i++ {
 		binary.Read(c, binary.LittleEndian, []byte{0})
 	}
-	return strlen, str, nil
+	return strlen, string(str), nil
 }
+
+func readArray(c io.Reader) ([]interface{}, error)
 
 func writeInteger(c io.Writer, val interface{}) {
 	binary.Write(c, binary.LittleEndian, val)
