@@ -36,6 +36,7 @@ func (c *Compositor) HandleEvent(opcode int16, msg []byte) {
 
 func NewCompositor() (c *Compositor) {
 	c = new(Compositor)
+	c.listeners = make(map[int16]chan interface{}, 0)
 
 	return
 }

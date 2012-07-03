@@ -32,6 +32,7 @@ func (b *Buffer) AddReleaseListener(channel chan interface{}) {
 }
 
 func buffer_release(b *Buffer, msg []byte) {
+	printEvent("release", msg)
 	var data BufferRelease
 
 	for _,channel := range b.listeners[0] {
@@ -41,6 +42,7 @@ func buffer_release(b *Buffer, msg []byte) {
 
 func NewBuffer() (b *Buffer) {
 	b = new(Buffer)
+	b.listeners = make(map[int16]chan interface{}, 0)
 
 	b.events = append(b.events, buffer_release)
 	return

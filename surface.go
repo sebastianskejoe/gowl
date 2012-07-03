@@ -74,6 +74,7 @@ func (s *Surface) AddEnterListener(channel chan interface{}) {
 }
 
 func surface_enter(s *Surface, msg []byte) {
+	printEvent("enter", msg)
 	var data SurfaceEnter
 	buf := bytes.NewBuffer(msg)
 
@@ -99,6 +100,7 @@ func (s *Surface) AddLeaveListener(channel chan interface{}) {
 }
 
 func surface_leave(s *Surface, msg []byte) {
+	printEvent("leave", msg)
 	var data SurfaceLeave
 	buf := bytes.NewBuffer(msg)
 
@@ -117,6 +119,7 @@ func surface_leave(s *Surface, msg []byte) {
 
 func NewSurface() (s *Surface) {
 	s = new(Surface)
+	s.listeners = make(map[int16]chan interface{}, 0)
 
 	s.events = append(s.events, surface_enter)
 	s.events = append(s.events, surface_leave)

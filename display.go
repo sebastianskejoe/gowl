@@ -48,6 +48,7 @@ func (d *Display) AddErrorListener(channel chan interface{}) {
 }
 
 func display_error(d *Display, msg []byte) {
+	printEvent("error", msg)
 	var data DisplayError
 	buf := bytes.NewBuffer(msg)
 
@@ -87,6 +88,7 @@ func (d *Display) AddGlobalListener(channel chan interface{}) {
 }
 
 func display_global(d *Display, msg []byte) {
+	printEvent("global", msg)
 	var data DisplayGlobal
 	buf := bytes.NewBuffer(msg)
 
@@ -122,6 +124,7 @@ func (d *Display) AddGlobal_removeListener(channel chan interface{}) {
 }
 
 func display_global_remove(d *Display, msg []byte) {
+	printEvent("global_remove", msg)
 	var data DisplayGlobal_remove
 	buf := bytes.NewBuffer(msg)
 
@@ -145,6 +148,7 @@ func (d *Display) AddDelete_idListener(channel chan interface{}) {
 }
 
 func display_delete_id(d *Display, msg []byte) {
+	printEvent("delete_id", msg)
 	var data DisplayDelete_id
 	buf := bytes.NewBuffer(msg)
 
@@ -161,6 +165,7 @@ func display_delete_id(d *Display, msg []byte) {
 
 func NewDisplay() (d *Display) {
 	d = new(Display)
+	d.listeners = make(map[int16]chan interface{}, 0)
 
 	d.events = append(d.events, display_error)
 	d.events = append(d.events, display_global)

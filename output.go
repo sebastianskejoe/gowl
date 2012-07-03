@@ -33,6 +33,7 @@ func (o *Output) AddGeometryListener(channel chan interface{}) {
 }
 
 func output_geometry(o *Output, msg []byte) {
+	printEvent("geometry", msg)
 	var data OutputGeometry
 	buf := bytes.NewBuffer(msg)
 
@@ -95,6 +96,7 @@ func (o *Output) AddModeListener(channel chan interface{}) {
 }
 
 func output_mode(o *Output, msg []byte) {
+	printEvent("mode", msg)
 	var data OutputMode
 	buf := bytes.NewBuffer(msg)
 
@@ -129,6 +131,7 @@ func output_mode(o *Output, msg []byte) {
 
 func NewOutput() (o *Output) {
 	o = new(Output)
+	o.listeners = make(map[int16]chan interface{}, 0)
 
 	o.events = append(o.events, output_geometry)
 	o.events = append(o.events, output_mode)

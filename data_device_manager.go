@@ -37,6 +37,7 @@ func (d *Data_device_manager) HandleEvent(opcode int16, msg []byte) {
 
 func NewData_device_manager() (d *Data_device_manager) {
 	d = new(Data_device_manager)
+	d.listeners = make(map[int16]chan interface{}, 0)
 
 	return
 }

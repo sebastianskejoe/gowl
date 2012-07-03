@@ -17,6 +17,7 @@ func init() {
 func appendObject(obj Object) int32 {
 	id := int32(len(objects))
 	objects[id] = obj
+	fmt.Printf("%v\n", obj)
 	obj.SetId(id)
 	return id
 }
@@ -39,6 +40,10 @@ func PrintObject(id int32) {
 
 func printError(f string, err error) {
 	fmt.Println(f,"produced an error:",err)
+}
+
+func printEvent(name string, args ...interface{}) {
+	fmt.Println(name,"{",args,"}")
 }
 
 func printRequest(name string, args ...interface{}) {

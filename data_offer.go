@@ -49,6 +49,7 @@ func (d *Data_offer) AddOfferListener(channel chan interface{}) {
 }
 
 func data_offer_offer(d *Data_offer, msg []byte) {
+	printEvent("offer", msg)
 	var data Data_offerOffer
 	buf := bytes.NewBuffer(msg)
 
@@ -65,6 +66,7 @@ func data_offer_offer(d *Data_offer, msg []byte) {
 
 func NewData_offer() (d *Data_offer) {
 	d = new(Data_offer)
+	d.listeners = make(map[int16]chan interface{}, 0)
 
 	d.events = append(d.events, data_offer_offer)
 	return

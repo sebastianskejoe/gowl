@@ -2,16 +2,13 @@ package main
 
 import (
 	"gowl"
+	"time"
 )
 
 
 func main() {
-	c := make(chan bool)
-	d := gowl.NewDisplay(c)
+	d := gowl.NewDisplay()
 	d.Iterate()
-	d.Sync()
 
-	d.Compositor.CreateSurface()
-
-	<-c
+	<-time.After(10e9)
 }

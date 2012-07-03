@@ -29,6 +29,7 @@ func (k *Keyboard) AddKeymapListener(channel chan interface{}) {
 }
 
 func keyboard_keymap(k *Keyboard, msg []byte) {
+	printEvent("keymap", msg)
 	var data KeyboardKeymap
 	buf := bytes.NewBuffer(msg)
 
@@ -66,6 +67,7 @@ func (k *Keyboard) AddEnterListener(channel chan interface{}) {
 }
 
 func keyboard_enter(k *Keyboard, msg []byte) {
+	printEvent("enter", msg)
 	var data KeyboardEnter
 	buf := bytes.NewBuffer(msg)
 
@@ -104,6 +106,7 @@ func (k *Keyboard) AddLeaveListener(channel chan interface{}) {
 }
 
 func keyboard_leave(k *Keyboard, msg []byte) {
+	printEvent("leave", msg)
 	var data KeyboardLeave
 	buf := bytes.NewBuffer(msg)
 
@@ -138,6 +141,7 @@ func (k *Keyboard) AddKeyListener(channel chan interface{}) {
 }
 
 func keyboard_key(k *Keyboard, msg []byte) {
+	printEvent("key", msg)
 	var data KeyboardKey
 	buf := bytes.NewBuffer(msg)
 
@@ -183,6 +187,7 @@ func (k *Keyboard) AddModifiersListener(channel chan interface{}) {
 }
 
 func keyboard_modifiers(k *Keyboard, msg []byte) {
+	printEvent("modifiers", msg)
 	var data KeyboardModifiers
 	buf := bytes.NewBuffer(msg)
 
@@ -223,6 +228,7 @@ func keyboard_modifiers(k *Keyboard, msg []byte) {
 
 func NewKeyboard() (k *Keyboard) {
 	k = new(Keyboard)
+	k.listeners = make(map[int16]chan interface{}, 0)
 
 	k.events = append(k.events, keyboard_keymap)
 	k.events = append(k.events, keyboard_enter)

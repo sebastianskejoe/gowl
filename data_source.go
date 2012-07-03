@@ -40,6 +40,7 @@ func (d *Data_source) AddTargetListener(channel chan interface{}) {
 }
 
 func data_source_target(d *Data_source, msg []byte) {
+	printEvent("target", msg)
 	var data Data_sourceTarget
 	buf := bytes.NewBuffer(msg)
 
@@ -64,6 +65,7 @@ func (d *Data_source) AddSendListener(channel chan interface{}) {
 }
 
 func data_source_send(d *Data_source, msg []byte) {
+	printEvent("send", msg)
 	var data Data_sourceSend
 	buf := bytes.NewBuffer(msg)
 
@@ -92,6 +94,7 @@ func (d *Data_source) AddCancelledListener(channel chan interface{}) {
 }
 
 func data_source_cancelled(d *Data_source, msg []byte) {
+	printEvent("cancelled", msg)
 	var data Data_sourceCancelled
 
 	for _,channel := range d.listeners[2] {
@@ -101,6 +104,7 @@ func data_source_cancelled(d *Data_source, msg []byte) {
 
 func NewData_source() (d *Data_source) {
 	d = new(Data_source)
+	d.listeners = make(map[int16]chan interface{}, 0)
 
 	d.events = append(d.events, data_source_target)
 	d.events = append(d.events, data_source_send)

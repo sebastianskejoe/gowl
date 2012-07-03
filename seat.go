@@ -51,6 +51,7 @@ func (s *Seat) AddCapabilitiesListener(channel chan interface{}) {
 }
 
 func seat_capabilities(s *Seat, msg []byte) {
+	printEvent("capabilities", msg)
 	var data SeatCapabilities
 	buf := bytes.NewBuffer(msg)
 
@@ -67,6 +68,7 @@ func seat_capabilities(s *Seat, msg []byte) {
 
 func NewSeat() (s *Seat) {
 	s = new(Seat)
+	s.listeners = make(map[int16]chan interface{}, 0)
 
 	s.events = append(s.events, seat_capabilities)
 	return

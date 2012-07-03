@@ -109,6 +109,7 @@ func (s *Shell_surface) AddPingListener(channel chan interface{}) {
 }
 
 func shell_surface_ping(s *Shell_surface, msg []byte) {
+	printEvent("ping", msg)
 	var data Shell_surfacePing
 	buf := bytes.NewBuffer(msg)
 
@@ -134,6 +135,7 @@ func (s *Shell_surface) AddConfigureListener(channel chan interface{}) {
 }
 
 func shell_surface_configure(s *Shell_surface, msg []byte) {
+	printEvent("configure", msg)
 	var data Shell_surfaceConfigure
 	buf := bytes.NewBuffer(msg)
 
@@ -168,6 +170,7 @@ func (s *Shell_surface) AddPopup_doneListener(channel chan interface{}) {
 }
 
 func shell_surface_popup_done(s *Shell_surface, msg []byte) {
+	printEvent("popup_done", msg)
 	var data Shell_surfacePopup_done
 
 	for _,channel := range s.listeners[2] {
@@ -177,6 +180,7 @@ func shell_surface_popup_done(s *Shell_surface, msg []byte) {
 
 func NewShell_surface() (s *Shell_surface) {
 	s = new(Shell_surface)
+	s.listeners = make(map[int16]chan interface{}, 0)
 
 	s.events = append(s.events, shell_surface_ping)
 	s.events = append(s.events, shell_surface_configure)

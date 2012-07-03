@@ -45,6 +45,7 @@ func (d *Data_device) AddData_offerListener(channel chan interface{}) {
 }
 
 func data_device_data_offer(d *Data_device, msg []byte) {
+	printEvent("data_offer", msg)
 	var data Data_deviceData_offer
 	buf := bytes.NewBuffer(msg)
 
@@ -74,6 +75,7 @@ func (d *Data_device) AddEnterListener(channel chan interface{}) {
 }
 
 func data_device_enter(d *Data_device, msg []byte) {
+	printEvent("enter", msg)
 	var data Data_deviceEnter
 	buf := bytes.NewBuffer(msg)
 
@@ -124,6 +126,7 @@ func (d *Data_device) AddLeaveListener(channel chan interface{}) {
 }
 
 func data_device_leave(d *Data_device, msg []byte) {
+	printEvent("leave", msg)
 	var data Data_deviceLeave
 
 	for _,channel := range d.listeners[2] {
@@ -142,6 +145,7 @@ func (d *Data_device) AddMotionListener(channel chan interface{}) {
 }
 
 func data_device_motion(d *Data_device, msg []byte) {
+	printEvent("motion", msg)
 	var data Data_deviceMotion
 	buf := bytes.NewBuffer(msg)
 
@@ -176,6 +180,7 @@ func (d *Data_device) AddDropListener(channel chan interface{}) {
 }
 
 func data_device_drop(d *Data_device, msg []byte) {
+	printEvent("drop", msg)
 	var data Data_deviceDrop
 
 	for _,channel := range d.listeners[4] {
@@ -192,6 +197,7 @@ func (d *Data_device) AddSelectionListener(channel chan interface{}) {
 }
 
 func data_device_selection(d *Data_device, msg []byte) {
+	printEvent("selection", msg)
 	var data Data_deviceSelection
 	buf := bytes.NewBuffer(msg)
 
@@ -210,6 +216,7 @@ func data_device_selection(d *Data_device, msg []byte) {
 
 func NewData_device() (d *Data_device) {
 	d = new(Data_device)
+	d.listeners = make(map[int16]chan interface{}, 0)
 
 	d.events = append(d.events, data_device_data_offer)
 	d.events = append(d.events, data_device_enter)

@@ -29,6 +29,7 @@ func (s *Shell) HandleEvent(opcode int16, msg []byte) {
 
 func NewShell() (s *Shell) {
 	s = new(Shell)
+	s.listeners = make(map[int16]chan interface{}, 0)
 
 	return
 }

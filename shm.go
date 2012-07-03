@@ -37,6 +37,7 @@ func (s *Shm) AddFormatListener(channel chan interface{}) {
 }
 
 func shm_format(s *Shm, msg []byte) {
+	printEvent("format", msg)
 	var data ShmFormat
 	buf := bytes.NewBuffer(msg)
 
@@ -53,6 +54,7 @@ func shm_format(s *Shm, msg []byte) {
 
 func NewShm() (s *Shm) {
 	s = new(Shm)
+	s.listeners = make(map[int16]chan interface{}, 0)
 
 	s.events = append(s.events, shm_format)
 	return

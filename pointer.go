@@ -40,6 +40,7 @@ func (p *Pointer) AddEnterListener(channel chan interface{}) {
 }
 
 func pointer_enter(p *Pointer, msg []byte) {
+	printEvent("enter", msg)
 	var data PointerEnter
 	buf := bytes.NewBuffer(msg)
 
@@ -84,6 +85,7 @@ func (p *Pointer) AddLeaveListener(channel chan interface{}) {
 }
 
 func pointer_leave(p *Pointer, msg []byte) {
+	printEvent("leave", msg)
 	var data PointerLeave
 	buf := bytes.NewBuffer(msg)
 
@@ -117,6 +119,7 @@ func (p *Pointer) AddMotionListener(channel chan interface{}) {
 }
 
 func pointer_motion(p *Pointer, msg []byte) {
+	printEvent("motion", msg)
 	var data PointerMotion
 	buf := bytes.NewBuffer(msg)
 
@@ -155,6 +158,7 @@ func (p *Pointer) AddButtonListener(channel chan interface{}) {
 }
 
 func pointer_button(p *Pointer, msg []byte) {
+	printEvent("button", msg)
 	var data PointerButton
 	buf := bytes.NewBuffer(msg)
 
@@ -198,6 +202,7 @@ func (p *Pointer) AddAxisListener(channel chan interface{}) {
 }
 
 func pointer_axis(p *Pointer, msg []byte) {
+	printEvent("axis", msg)
 	var data PointerAxis
 	buf := bytes.NewBuffer(msg)
 
@@ -226,6 +231,7 @@ func pointer_axis(p *Pointer, msg []byte) {
 
 func NewPointer() (p *Pointer) {
 	p = new(Pointer)
+	p.listeners = make(map[int16]chan interface{}, 0)
 
 	p.events = append(p.events, pointer_enter)
 	p.events = append(p.events, pointer_leave)

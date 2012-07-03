@@ -27,6 +27,7 @@ func (c *Callback) AddDoneListener(channel chan interface{}) {
 }
 
 func callback_done(c *Callback, msg []byte) {
+	printEvent("done", msg)
 	var data CallbackDone
 	buf := bytes.NewBuffer(msg)
 
@@ -43,6 +44,7 @@ func callback_done(c *Callback, msg []byte) {
 
 func NewCallback() (c *Callback) {
 	c = new(Callback)
+	c.listeners = make(map[int16]chan interface{}, 0)
 
 	c.events = append(c.events, callback_done)
 	return

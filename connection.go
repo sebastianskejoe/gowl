@@ -154,7 +154,9 @@ func readString(c io.Reader) (uint32, string, error) {
 	return strlen, string(str), nil
 }
 
-func readArray(c io.Reader) ([]interface{}, error)
+func readArray(c io.Reader) ([]interface{}, error) {
+	return nil, nil
+}
 
 func writeInteger(c io.Writer, val interface{}) {
 	binary.Write(c, binary.LittleEndian, val)

@@ -1,8 +1,8 @@
 package gowl
 
 type WlObject struct {
-	listeners map[int16][]chan interface{}//func(...interface{})
 	id int32
+	listeners map[int16][]chan interface{}//func(...interface{})
 }
 
 func (obj *WlObject) SetId(id int32) {

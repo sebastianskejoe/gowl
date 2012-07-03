@@ -32,6 +32,7 @@ func (t *Touch) AddDownListener(channel chan interface{}) {
 }
 
 func touch_down(t *Touch, msg []byte) {
+	printEvent("down", msg)
 	var data TouchDown
 	buf := bytes.NewBuffer(msg)
 
@@ -89,6 +90,7 @@ func (t *Touch) AddUpListener(channel chan interface{}) {
 }
 
 func touch_up(t *Touch, msg []byte) {
+	printEvent("up", msg)
 	var data TouchUp
 	buf := bytes.NewBuffer(msg)
 
@@ -127,6 +129,7 @@ func (t *Touch) AddMotionListener(channel chan interface{}) {
 }
 
 func touch_motion(t *Touch, msg []byte) {
+	printEvent("motion", msg)
 	var data TouchMotion
 	buf := bytes.NewBuffer(msg)
 
@@ -167,6 +170,7 @@ func (t *Touch) AddFrameListener(channel chan interface{}) {
 }
 
 func touch_frame(t *Touch, msg []byte) {
+	printEvent("frame", msg)
 	var data TouchFrame
 
 	for _,channel := range t.listeners[3] {
@@ -182,6 +186,7 @@ func (t *Touch) AddCancelListener(channel chan interface{}) {
 }
 
 func touch_cancel(t *Touch, msg []byte) {
+	printEvent("cancel", msg)
 	var data TouchCancel
 
 	for _,channel := range t.listeners[4] {
@@ -191,6 +196,7 @@ func touch_cancel(t *Touch, msg []byte) {
 
 func NewTouch() (t *Touch) {
 	t = new(Touch)
+	t.listeners = make(map[int16]chan interface{}, 0)
 
 	t.events = append(t.events, touch_down)
 	t.events = append(t.events, touch_up)
