@@ -103,7 +103,7 @@ func (s *Shell_surface) HandleEvent(opcode int16, msg []byte) {
 }
 
 type Shell_surfacePing struct {
-	serial uint32
+	Serial uint32
 }
 
 func (s *Shell_surface) AddPingListener(channel chan interface{}) {
@@ -119,17 +119,17 @@ func shell_surface_ping(s *Shell_surface, msg []byte) {
 	if err != nil {
 		// XXX Error handling
 	}
-	data.serial = serial
+	data.Serial = serial
 
 	for _,channel := range s.listeners[0] {
-		channel <- data
+		go func () { channel <- data }()
 	}
 }
 
 type Shell_surfaceConfigure struct {
-	edges uint32
-	width int32
-	height int32
+	Edges uint32
+	Width int32
+	Height int32
 }
 
 func (s *Shell_surface) AddConfigureListener(channel chan interface{}) {
@@ -145,22 +145,22 @@ func shell_surface_configure(s *Shell_surface, msg []byte) {
 	if err != nil {
 		// XXX Error handling
 	}
-	data.edges = edges
+	data.Edges = edges
 
 	width,err := readInt32(buf)
 	if err != nil {
 		// XXX Error handling
 	}
-	data.width = width
+	data.Width = width
 
 	height,err := readInt32(buf)
 	if err != nil {
 		// XXX Error handling
 	}
-	data.height = height
+	data.Height = height
 
 	for _,channel := range s.listeners[1] {
-		channel <- data
+		go func () { channel <- data }()
 	}
 }
 
@@ -176,7 +176,7 @@ func shell_surface_popup_done(s *Shell_surface, msg []byte) {
 	var data Shell_surfacePopup_done
 
 	for _,channel := range s.listeners[2] {
-		channel <- data
+		go func () { channel <- data }()
 	}
 }
 

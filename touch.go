@@ -21,12 +21,12 @@ func (t *Touch) HandleEvent(opcode int16, msg []byte) {
 }
 
 type TouchDown struct {
-	serial uint32
-	time uint32
-	surface *Surface
-	id int32
-	x int32
-	y int32
+	Serial uint32
+	Time uint32
+	Surface *Surface
+	Id int32
+	X int32
+	Y int32
 }
 
 func (t *Touch) AddDownListener(channel chan interface{}) {
@@ -42,13 +42,13 @@ func touch_down(t *Touch, msg []byte) {
 	if err != nil {
 		// XXX Error handling
 	}
-	data.serial = serial
+	data.Serial = serial
 
 	time,err := readUint32(buf)
 	if err != nil {
 		// XXX Error handling
 	}
-	data.time = time
+	data.Time = time
 
 	surfaceid, err := readInt32(buf)
 	if err != nil {
@@ -56,35 +56,35 @@ func touch_down(t *Touch, msg []byte) {
 	}
 	surface := new(Surface)
 	surface = getObject(surfaceid).(*Surface)
-	data.surface = surface
+	data.Surface = surface
 
 	id,err := readInt32(buf)
 	if err != nil {
 		// XXX Error handling
 	}
-	data.id = id
+	data.Id = id
 
 	x,err := readInt32(buf)
 	if err != nil {
 		// XXX Error handling
 	}
-	data.x = x
+	data.X = x
 
 	y,err := readInt32(buf)
 	if err != nil {
 		// XXX Error handling
 	}
-	data.y = y
+	data.Y = y
 
 	for _,channel := range t.listeners[0] {
-		channel <- data
+		go func () { channel <- data }()
 	}
 }
 
 type TouchUp struct {
-	serial uint32
-	time uint32
-	id int32
+	Serial uint32
+	Time uint32
+	Id int32
 }
 
 func (t *Touch) AddUpListener(channel chan interface{}) {
@@ -100,30 +100,30 @@ func touch_up(t *Touch, msg []byte) {
 	if err != nil {
 		// XXX Error handling
 	}
-	data.serial = serial
+	data.Serial = serial
 
 	time,err := readUint32(buf)
 	if err != nil {
 		// XXX Error handling
 	}
-	data.time = time
+	data.Time = time
 
 	id,err := readInt32(buf)
 	if err != nil {
 		// XXX Error handling
 	}
-	data.id = id
+	data.Id = id
 
 	for _,channel := range t.listeners[1] {
-		channel <- data
+		go func () { channel <- data }()
 	}
 }
 
 type TouchMotion struct {
-	time uint32
-	id int32
-	x int32
-	y int32
+	Time uint32
+	Id int32
+	X int32
+	Y int32
 }
 
 func (t *Touch) AddMotionListener(channel chan interface{}) {
@@ -139,28 +139,28 @@ func touch_motion(t *Touch, msg []byte) {
 	if err != nil {
 		// XXX Error handling
 	}
-	data.time = time
+	data.Time = time
 
 	id,err := readInt32(buf)
 	if err != nil {
 		// XXX Error handling
 	}
-	data.id = id
+	data.Id = id
 
 	x,err := readInt32(buf)
 	if err != nil {
 		// XXX Error handling
 	}
-	data.x = x
+	data.X = x
 
 	y,err := readInt32(buf)
 	if err != nil {
 		// XXX Error handling
 	}
-	data.y = y
+	data.Y = y
 
 	for _,channel := range t.listeners[2] {
-		channel <- data
+		go func () { channel <- data }()
 	}
 }
 
@@ -176,7 +176,7 @@ func touch_frame(t *Touch, msg []byte) {
 	var data TouchFrame
 
 	for _,channel := range t.listeners[3] {
-		channel <- data
+		go func () { channel <- data }()
 	}
 }
 
@@ -192,7 +192,7 @@ func touch_cancel(t *Touch, msg []byte) {
 	var data TouchCancel
 
 	for _,channel := range t.listeners[4] {
-		channel <- data
+		go func () { channel <- data }()
 	}
 }
 

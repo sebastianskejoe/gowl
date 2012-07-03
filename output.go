@@ -21,13 +21,13 @@ func (o *Output) HandleEvent(opcode int16, msg []byte) {
 }
 
 type OutputGeometry struct {
-	x int32
-	y int32
-	physical_width int32
-	physical_height int32
-	subpixel int32
-	make string
-	model string
+	X int32
+	Y int32
+	Physical_width int32
+	Physical_height int32
+	Subpixel int32
+	Make string
+	Model string
 }
 
 func (o *Output) AddGeometryListener(channel chan interface{}) {
@@ -43,54 +43,54 @@ func output_geometry(o *Output, msg []byte) {
 	if err != nil {
 		// XXX Error handling
 	}
-	data.x = x
+	data.X = x
 
 	y,err := readInt32(buf)
 	if err != nil {
 		// XXX Error handling
 	}
-	data.y = y
+	data.Y = y
 
 	physical_width,err := readInt32(buf)
 	if err != nil {
 		// XXX Error handling
 	}
-	data.physical_width = physical_width
+	data.Physical_width = physical_width
 
 	physical_height,err := readInt32(buf)
 	if err != nil {
 		// XXX Error handling
 	}
-	data.physical_height = physical_height
+	data.Physical_height = physical_height
 
 	subpixel,err := readInt32(buf)
 	if err != nil {
 		// XXX Error handling
 	}
-	data.subpixel = subpixel
+	data.Subpixel = subpixel
 
 	_,make,err := readString(buf)
 	if err != nil {
 		// XXX Error handling
 	}
-	data.make = make
+	data.Make = make
 
 	_,model,err := readString(buf)
 	if err != nil {
 		// XXX Error handling
 	}
-	data.model = model
+	data.Model = model
 
 	for _,channel := range o.listeners[0] {
-		channel <- data
+		go func () { channel <- data }()
 	}
 }
 
 type OutputMode struct {
-	flags uint32
-	width int32
-	height int32
-	refresh int32
+	Flags uint32
+	Width int32
+	Height int32
+	Refresh int32
 }
 
 func (o *Output) AddModeListener(channel chan interface{}) {
@@ -106,28 +106,28 @@ func output_mode(o *Output, msg []byte) {
 	if err != nil {
 		// XXX Error handling
 	}
-	data.flags = flags
+	data.Flags = flags
 
 	width,err := readInt32(buf)
 	if err != nil {
 		// XXX Error handling
 	}
-	data.width = width
+	data.Width = width
 
 	height,err := readInt32(buf)
 	if err != nil {
 		// XXX Error handling
 	}
-	data.height = height
+	data.Height = height
 
 	refresh,err := readInt32(buf)
 	if err != nil {
 		// XXX Error handling
 	}
-	data.refresh = refresh
+	data.Refresh = refresh
 
 	for _,channel := range o.listeners[1] {
-		channel <- data
+		go func () { channel <- data }()
 	}
 }
 

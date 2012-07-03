@@ -40,9 +40,9 @@ func (d *Display) HandleEvent(opcode int16, msg []byte) {
 }
 
 type DisplayError struct {
-	object_id Object
-	code uint32
-	message string
+	Object_id Object
+	Code uint32
+	Message string
 }
 
 func (d *Display) AddErrorListener(channel chan interface{}) {
@@ -60,29 +60,29 @@ func display_error(d *Display, msg []byte) {
 	}
 	object_id := new(Object)
 	object_id = getObject(object_idid).(Object)
-	data.object_id = object_id
+	data.Object_id = object_id
 
 	code,err := readUint32(buf)
 	if err != nil {
 		// XXX Error handling
 	}
-	data.code = code
+	data.Code = code
 
 	_,message,err := readString(buf)
 	if err != nil {
 		// XXX Error handling
 	}
-	data.message = message
+	data.Message = message
 
 	for _,channel := range d.listeners[0] {
-		channel <- data
+		go func () { channel <- data }()
 	}
 }
 
 type DisplayGlobal struct {
-	name uint32
-	iface string
-	version uint32
+	Name uint32
+	Iface string
+	Version uint32
 }
 
 func (d *Display) AddGlobalListener(channel chan interface{}) {
@@ -98,27 +98,27 @@ func display_global(d *Display, msg []byte) {
 	if err != nil {
 		// XXX Error handling
 	}
-	data.name = name
+	data.Name = name
 
 	_,iface,err := readString(buf)
 	if err != nil {
 		// XXX Error handling
 	}
-	data.iface = iface
+	data.Iface = iface
 
 	version,err := readUint32(buf)
 	if err != nil {
 		// XXX Error handling
 	}
-	data.version = version
+	data.Version = version
 
 	for _,channel := range d.listeners[1] {
-		channel <- data
+		go func () { channel <- data }()
 	}
 }
 
 type DisplayGlobal_remove struct {
-	name uint32
+	Name uint32
 }
 
 func (d *Display) AddGlobal_removeListener(channel chan interface{}) {
@@ -134,15 +134,15 @@ func display_global_remove(d *Display, msg []byte) {
 	if err != nil {
 		// XXX Error handling
 	}
-	data.name = name
+	data.Name = name
 
 	for _,channel := range d.listeners[2] {
-		channel <- data
+		go func () { channel <- data }()
 	}
 }
 
 type DisplayDelete_id struct {
-	id uint32
+	Id uint32
 }
 
 func (d *Display) AddDelete_idListener(channel chan interface{}) {
@@ -158,10 +158,10 @@ func display_delete_id(d *Display, msg []byte) {
 	if err != nil {
 		// XXX Error handling
 	}
-	data.id = id
+	data.Id = id
 
 	for _,channel := range d.listeners[3] {
-		channel <- data
+		go func () { channel <- data }()
 	}
 }
 

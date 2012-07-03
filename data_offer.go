@@ -43,7 +43,7 @@ func (d *Data_offer) HandleEvent(opcode int16, msg []byte) {
 }
 
 type Data_offerOffer struct {
-	typ string
+	Typ string
 }
 
 func (d *Data_offer) AddOfferListener(channel chan interface{}) {
@@ -59,10 +59,10 @@ func data_offer_offer(d *Data_offer, msg []byte) {
 	if err != nil {
 		// XXX Error handling
 	}
-	data.typ = typ
+	data.Typ = typ
 
 	for _,channel := range d.listeners[0] {
-		channel <- data
+		go func () { channel <- data }()
 	}
 }
 

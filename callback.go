@@ -21,7 +21,7 @@ func (c *Callback) HandleEvent(opcode int16, msg []byte) {
 }
 
 type CallbackDone struct {
-	serial uint32
+	Serial uint32
 }
 
 func (c *Callback) AddDoneListener(channel chan interface{}) {
@@ -37,10 +37,10 @@ func callback_done(c *Callback, msg []byte) {
 	if err != nil {
 		// XXX Error handling
 	}
-	data.serial = serial
+	data.Serial = serial
 
 	for _,channel := range c.listeners[0] {
-		channel <- data
+		go func () { channel <- data }()
 	}
 }
 

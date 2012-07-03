@@ -45,7 +45,7 @@ func (s *Seat) HandleEvent(opcode int16, msg []byte) {
 }
 
 type SeatCapabilities struct {
-	capabilities uint32
+	Capabilities uint32
 }
 
 func (s *Seat) AddCapabilitiesListener(channel chan interface{}) {
@@ -61,10 +61,10 @@ func seat_capabilities(s *Seat, msg []byte) {
 	if err != nil {
 		// XXX Error handling
 	}
-	data.capabilities = capabilities
+	data.Capabilities = capabilities
 
 	for _,channel := range s.listeners[0] {
-		channel <- data
+		go func () { channel <- data }()
 	}
 }
 

@@ -31,7 +31,7 @@ func (s *Shm) HandleEvent(opcode int16, msg []byte) {
 }
 
 type ShmFormat struct {
-	format uint32
+	Format uint32
 }
 
 func (s *Shm) AddFormatListener(channel chan interface{}) {
@@ -47,10 +47,10 @@ func shm_format(s *Shm, msg []byte) {
 	if err != nil {
 		// XXX Error handling
 	}
-	data.format = format
+	data.Format = format
 
 	for _,channel := range s.listeners[0] {
-		channel <- data
+		go func () { channel <- data }()
 	}
 }
 

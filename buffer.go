@@ -38,7 +38,7 @@ func buffer_release(b *Buffer, msg []byte) {
 	var data BufferRelease
 
 	for _,channel := range b.listeners[0] {
-		channel <- data
+		go func () { channel <- data }()
 	}
 }
 

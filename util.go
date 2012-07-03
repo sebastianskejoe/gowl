@@ -17,7 +17,6 @@ func init() {
 func appendObject(obj Object) int32 {
 	id := int32(len(objects))
 	objects[id] = obj
-	fmt.Printf("%v\n", obj)
 	obj.SetId(id)
 	return id
 }

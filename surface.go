@@ -68,7 +68,7 @@ func (s *Surface) HandleEvent(opcode int16, msg []byte) {
 }
 
 type SurfaceEnter struct {
-	output *Output
+	Output *Output
 }
 
 func (s *Surface) AddEnterListener(channel chan interface{}) {
@@ -86,15 +86,15 @@ func surface_enter(s *Surface, msg []byte) {
 	}
 	output := new(Output)
 	output = getObject(outputid).(*Output)
-	data.output = output
+	data.Output = output
 
 	for _,channel := range s.listeners[0] {
-		channel <- data
+		go func () { channel <- data }()
 	}
 }
 
 type SurfaceLeave struct {
-	output *Output
+	Output *Output
 }
 
 func (s *Surface) AddLeaveListener(channel chan interface{}) {
@@ -112,10 +112,10 @@ func surface_leave(s *Surface, msg []byte) {
 	}
 	output := new(Output)
 	output = getObject(outputid).(*Output)
-	data.output = output
+	data.Output = output
 
 	for _,channel := range s.listeners[1] {
-		channel <- data
+		go func () { channel <- data }()
 	}
 }
 

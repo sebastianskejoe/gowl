@@ -39,7 +39,7 @@ func (d *Data_device) HandleEvent(opcode int16, msg []byte) {
 }
 
 type Data_deviceData_offer struct {
-	id *Data_offer
+	Id *Data_offer
 }
 
 func (d *Data_device) AddData_offerListener(channel chan interface{}) {
@@ -57,19 +57,19 @@ func data_device_data_offer(d *Data_device, msg []byte) {
 	}
 	id := new(Data_offer)
 	setObject(idid, id)
-	data.id = id
+	data.Id = id
 
 	for _,channel := range d.listeners[0] {
-		channel <- data
+		go func () { channel <- data }()
 	}
 }
 
 type Data_deviceEnter struct {
-	serial uint32
-	surface *Surface
-	x int32
-	y int32
-	id *Data_offer
+	Serial uint32
+	Surface *Surface
+	X int32
+	Y int32
+	Id *Data_offer
 }
 
 func (d *Data_device) AddEnterListener(channel chan interface{}) {
@@ -85,7 +85,7 @@ func data_device_enter(d *Data_device, msg []byte) {
 	if err != nil {
 		// XXX Error handling
 	}
-	data.serial = serial
+	data.Serial = serial
 
 	surfaceid, err := readInt32(buf)
 	if err != nil {
@@ -93,19 +93,19 @@ func data_device_enter(d *Data_device, msg []byte) {
 	}
 	surface := new(Surface)
 	surface = getObject(surfaceid).(*Surface)
-	data.surface = surface
+	data.Surface = surface
 
 	x,err := readInt32(buf)
 	if err != nil {
 		// XXX Error handling
 	}
-	data.x = x
+	data.X = x
 
 	y,err := readInt32(buf)
 	if err != nil {
 		// XXX Error handling
 	}
-	data.y = y
+	data.Y = y
 
 	idid, err := readInt32(buf)
 	if err != nil {
@@ -113,10 +113,10 @@ func data_device_enter(d *Data_device, msg []byte) {
 	}
 	id := new(Data_offer)
 	id = getObject(idid).(*Data_offer)
-	data.id = id
+	data.Id = id
 
 	for _,channel := range d.listeners[1] {
-		channel <- data
+		go func () { channel <- data }()
 	}
 }
 
@@ -132,14 +132,14 @@ func data_device_leave(d *Data_device, msg []byte) {
 	var data Data_deviceLeave
 
 	for _,channel := range d.listeners[2] {
-		channel <- data
+		go func () { channel <- data }()
 	}
 }
 
 type Data_deviceMotion struct {
-	time uint32
-	x int32
-	y int32
+	Time uint32
+	X int32
+	Y int32
 }
 
 func (d *Data_device) AddMotionListener(channel chan interface{}) {
@@ -155,22 +155,22 @@ func data_device_motion(d *Data_device, msg []byte) {
 	if err != nil {
 		// XXX Error handling
 	}
-	data.time = time
+	data.Time = time
 
 	x,err := readInt32(buf)
 	if err != nil {
 		// XXX Error handling
 	}
-	data.x = x
+	data.X = x
 
 	y,err := readInt32(buf)
 	if err != nil {
 		// XXX Error handling
 	}
-	data.y = y
+	data.Y = y
 
 	for _,channel := range d.listeners[3] {
-		channel <- data
+		go func () { channel <- data }()
 	}
 }
 
@@ -186,12 +186,12 @@ func data_device_drop(d *Data_device, msg []byte) {
 	var data Data_deviceDrop
 
 	for _,channel := range d.listeners[4] {
-		channel <- data
+		go func () { channel <- data }()
 	}
 }
 
 type Data_deviceSelection struct {
-	id *Data_offer
+	Id *Data_offer
 }
 
 func (d *Data_device) AddSelectionListener(channel chan interface{}) {
@@ -209,10 +209,10 @@ func data_device_selection(d *Data_device, msg []byte) {
 	}
 	id := new(Data_offer)
 	id = getObject(idid).(*Data_offer)
-	data.id = id
+	data.Id = id
 
 	for _,channel := range d.listeners[5] {
-		channel <- data
+		go func () { channel <- data }()
 	}
 }
 

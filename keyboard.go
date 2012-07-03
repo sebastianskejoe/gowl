@@ -21,9 +21,9 @@ func (k *Keyboard) HandleEvent(opcode int16, msg []byte) {
 }
 
 type KeyboardKeymap struct {
-	format uint32
-	fd uintptr
-	size uint32
+	Format uint32
+	Fd uintptr
+	Size uint32
 }
 
 func (k *Keyboard) AddKeymapListener(channel chan interface{}) {
@@ -39,29 +39,29 @@ func keyboard_keymap(k *Keyboard, msg []byte) {
 	if err != nil {
 		// XXX Error handling
 	}
-	data.format = format
+	data.Format = format
 
 	fd,err := readUintptr(buf)
 	if err != nil {
 		// XXX Error handling
 	}
-	data.fd = fd
+	data.Fd = fd
 
 	size,err := readUint32(buf)
 	if err != nil {
 		// XXX Error handling
 	}
-	data.size = size
+	data.Size = size
 
 	for _,channel := range k.listeners[0] {
-		channel <- data
+		go func () { channel <- data }()
 	}
 }
 
 type KeyboardEnter struct {
-	serial uint32
-	surface *Surface
-	keys []interface{}
+	Serial uint32
+	Surface *Surface
+	Keys []interface{}
 }
 
 func (k *Keyboard) AddEnterListener(channel chan interface{}) {
@@ -77,7 +77,7 @@ func keyboard_enter(k *Keyboard, msg []byte) {
 	if err != nil {
 		// XXX Error handling
 	}
-	data.serial = serial
+	data.Serial = serial
 
 	surfaceid, err := readInt32(buf)
 	if err != nil {
@@ -85,22 +85,22 @@ func keyboard_enter(k *Keyboard, msg []byte) {
 	}
 	surface := new(Surface)
 	surface = getObject(surfaceid).(*Surface)
-	data.surface = surface
+	data.Surface = surface
 
 	keys,err := readArray(buf)
 	if err != nil {
 		// XXX Error handling
 	}
-	data.keys = keys
+	data.Keys = keys
 
 	for _,channel := range k.listeners[1] {
-		channel <- data
+		go func () { channel <- data }()
 	}
 }
 
 type KeyboardLeave struct {
-	serial uint32
-	surface *Surface
+	Serial uint32
+	Surface *Surface
 }
 
 func (k *Keyboard) AddLeaveListener(channel chan interface{}) {
@@ -116,7 +116,7 @@ func keyboard_leave(k *Keyboard, msg []byte) {
 	if err != nil {
 		// XXX Error handling
 	}
-	data.serial = serial
+	data.Serial = serial
 
 	surfaceid, err := readInt32(buf)
 	if err != nil {
@@ -124,18 +124,18 @@ func keyboard_leave(k *Keyboard, msg []byte) {
 	}
 	surface := new(Surface)
 	surface = getObject(surfaceid).(*Surface)
-	data.surface = surface
+	data.Surface = surface
 
 	for _,channel := range k.listeners[2] {
-		channel <- data
+		go func () { channel <- data }()
 	}
 }
 
 type KeyboardKey struct {
-	serial uint32
-	time uint32
-	key uint32
-	state uint32
+	Serial uint32
+	Time uint32
+	Key uint32
+	State uint32
 }
 
 func (k *Keyboard) AddKeyListener(channel chan interface{}) {
@@ -151,37 +151,37 @@ func keyboard_key(k *Keyboard, msg []byte) {
 	if err != nil {
 		// XXX Error handling
 	}
-	data.serial = serial
+	data.Serial = serial
 
 	time,err := readUint32(buf)
 	if err != nil {
 		// XXX Error handling
 	}
-	data.time = time
+	data.Time = time
 
 	key,err := readUint32(buf)
 	if err != nil {
 		// XXX Error handling
 	}
-	data.key = key
+	data.Key = key
 
 	state,err := readUint32(buf)
 	if err != nil {
 		// XXX Error handling
 	}
-	data.state = state
+	data.State = state
 
 	for _,channel := range k.listeners[3] {
-		channel <- data
+		go func () { channel <- data }()
 	}
 }
 
 type KeyboardModifiers struct {
-	serial uint32
-	mods_depressed uint32
-	mods_latched uint32
-	mods_locked uint32
-	group uint32
+	Serial uint32
+	Mods_depressed uint32
+	Mods_latched uint32
+	Mods_locked uint32
+	Group uint32
 }
 
 func (k *Keyboard) AddModifiersListener(channel chan interface{}) {
@@ -197,34 +197,34 @@ func keyboard_modifiers(k *Keyboard, msg []byte) {
 	if err != nil {
 		// XXX Error handling
 	}
-	data.serial = serial
+	data.Serial = serial
 
 	mods_depressed,err := readUint32(buf)
 	if err != nil {
 		// XXX Error handling
 	}
-	data.mods_depressed = mods_depressed
+	data.Mods_depressed = mods_depressed
 
 	mods_latched,err := readUint32(buf)
 	if err != nil {
 		// XXX Error handling
 	}
-	data.mods_latched = mods_latched
+	data.Mods_latched = mods_latched
 
 	mods_locked,err := readUint32(buf)
 	if err != nil {
 		// XXX Error handling
 	}
-	data.mods_locked = mods_locked
+	data.Mods_locked = mods_locked
 
 	group,err := readUint32(buf)
 	if err != nil {
 		// XXX Error handling
 	}
-	data.group = group
+	data.Group = group
 
 	for _,channel := range k.listeners[4] {
-		channel <- data
+		go func () { channel <- data }()
 	}
 }
 
