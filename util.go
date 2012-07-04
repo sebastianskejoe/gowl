@@ -15,7 +15,17 @@ func init() {
 }
 
 func appendObject(obj Object) int32 {
-	id := int32(len(objects))
+	var id int32
+	id = -1
+	for k,val := range objects {
+		if val == nil && k != 0 {
+			id = k
+		}
+	}
+	if id == -1 {
+		id = int32(len(objects))
+	}
+	fmt.Println("id is", id)
 	objects[id] = obj
 	obj.SetId(id)
 	return id
@@ -30,7 +40,9 @@ func getObject(id int32) Object {
 }
 
 func removeObject(id int32) {
-	delete(objects, id)
+	fmt.Println("Removing",id)
+	objects[id] = nil
+//	delete(objects, id)
 }
 
 func PrintObject(id int32) {
@@ -47,4 +59,18 @@ func printEvent(name string, args ...interface{}) {
 
 func printRequest(name string, args ...interface{}) {
 	fmt.Println("->",name,"{",args,"}")
+}
+
+func delete_id_listener(c chan interface{}) {
+	for e := range c {
+		ev := e.(DisplayDelete_id)
+		removeObject(int32(ev.Id))
+	}
+}
+
+func error_listener(c chan interface{}) {
+	for e := range c {
+		ev := e.(DisplayError)
+		fmt.Println("Error:", ev.Object_id, ev.Code, ev.Message)
+	}
 }
