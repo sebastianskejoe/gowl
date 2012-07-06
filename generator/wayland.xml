@@ -1,0 +1,1081 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<protocol name="wayland">
+
+  <copyright>
+    Copyright © 2008-2011 Kristian Høgsberg
+    Copyright © 2010-2011 Intel Corporation
+
+    Permission to use, copy, modify, distribute, and sell this
+    software and its documentation for any purpose is hereby granted
+    without fee, provided that the above copyright notice appear in
+    all copies and that both that copyright notice and this permission
+    notice appear in supporting documentation, and that the name of
+    the copyright holders not be used in advertising or publicity
+    pertaining to distribution of the software without specific,
+    written prior permission.  The copyright holders make no
+    representations about the suitability of this software for any
+    purpose.  It is provided "as is" without express or implied
+    warranty.
+
+    THE COPYRIGHT HOLDERS DISCLAIM ALL WARRANTIES WITH REGARD TO THIS
+    SOFTWARE, INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND
+    FITNESS, IN NO EVENT SHALL THE COPYRIGHT HOLDERS BE LIABLE FOR ANY
+    SPECIAL, INDIRECT OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+    WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN
+    AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION,
+    ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF
+    THIS SOFTWARE.
+  </copyright>
+
+  <interface name="wl_display" version="1">
+    <description summary="core global object">
+      The core global object.  This is a special singleton object.  It
+      is used for internal wayland protocol features.
+    </description>
+    <request name="bind">
+      <description summary="bind an object to the display">
+	Binds a new, client-created object to the server using @name as
+	the identifier.
+      </description>
+      <arg name="name" type="uint" summary="unique number id for object"/>
+      <arg name="interface" type="string"/>
+      <arg name="version" type="uint"/>
+      <arg name="id" type="new_id" interface="wl_object"/>
+    </request>
+
+    <request name="sync">
+      <description summary="asynchronous roundtrip">
+	The sync request asks the server to invoke the 'done' request
+	on the provided wl_callback object.  Since requests are
+	handled in-order, this can be used as a barrier to ensure all
+	previous requests have been handled.
+      </description>
+      <arg name="callback" type="new_id" interface="wl_callback"/>
+    </request>
+
+    <event name="error">
+      <description summary="fatal error event">
+	The error event is sent out when a fatal (non-recoverable)
+	error has occurred.
+      </description>
+      <arg name="object_id" type="object" interface="wl_object"/>
+      <arg name="code" type="uint"/>
+      <arg name="message" type="string"/>
+    </event>
+
+    <enum name="error">
+      <description summary="global error values">
+	These errors are global and can be emitted in response to any
+	server request.
+      </description>
+      <entry name="invalid_object" value="0"
+	     summary="server couldn't find object"/>
+      <entry name="invalid_method" value="1"
+	     summary="method doesn't exist on the specified interface"/>
+      <entry name="no_memory" value="2"
+	     summary="server is out of memory"/>
+    </enum>
+
+    <event name="global">
+      <description summary="announce global object">
+	Notify the client of global objects.  These are objects that
+	are created by the server.  Globals are published on the
+	initial client connection sequence, upon device hotplugs,
+	device disconnects, reconfiguration or other events.  A client
+	can 'bind' to a global object by using the bind request.  This
+	creates a client side handle that lets the object emit events
+	to the client and lets the client invoke requests on the
+	object.
+      </description>
+      <arg name="name" type="uint"/>
+      <arg name="interface" type="string"/>
+      <arg name="version" type="uint"/>
+    </event>
+
+    <event name="global_remove">
+      <description summary="announce removal of global object">
+	Notify the client of removed global objects.
+      </description>
+      <arg name="name" type="uint"/>
+    </event>
+
+    <event name="delete_id">
+      <description summary="acknowledge object id deletion">
+	Server has deleted the id and client can now reuse it.
+      </description>
+      <arg name="id" type="uint" />
+    </event>
+  </interface>
+
+  <interface name="wl_callback" version="1">
+    <event name="done">
+      <arg name="serial" type="uint"/>
+    </event>
+  </interface>
+
+  <interface name="wl_compositor" version="1">
+    <description summary="the compositor singleton">
+      A compositor.  This object is a singleton global.  The
+      compositor is in charge of combining the contents of multiple
+      surfaces into one displayable output.
+    </description>
+
+    <request name="create_surface">
+      <description summary="create new surface">
+	Ask the compositor to create a new surface.
+      </description>
+      <arg name="id" type="new_id" interface="wl_surface"/>
+    </request>
+
+    <request name="create_region">
+      <description summary="create new region">
+	Ask the compositor to create a new region.
+      </description>
+      <arg name="id" type="new_id" interface="wl_region"/>
+    </request>
+  </interface>
+
+  <interface name="wl_shm_pool" version="1">
+    <description summary="a shared memory pool">
+      The wl_shm_pool object encapsulates a piece of memory shared
+      between the compsitor and client.  Through the wl_shm_pool
+      object, the client can allocate shared memory wl_buffer objects.
+      The objects will share the same underlying mapped memory.
+      Reusing the mapped memory avoids the setup/teardown overhead and
+      is useful when interactively resizing a surface or for many
+      small buffers.
+    </description>
+
+    <request name="create_buffer">
+      <description summary="create wl_buffer from pool">
+	Create a wl_buffer from the pool.  The buffer is created a
+	offset bytes into the pool and has width and height as
+	specified.  The stride arguments specifies the number of bytes
+	from beginning of one row to the beginning of the next.  The
+	format is the pixel format of the buffer and must be one of
+	those advertised through the wl_shm.format event.
+
+	A buffer will keep a reference to the pool it was created from
+	so it is valid to destroy the pool immediatedly after creating
+	a buffer from it.
+      </description>
+
+      <arg name="id" type="new_id" interface="wl_buffer"/>
+      <arg name="offset" type="int"/>
+      <arg name="width" type="int"/>
+      <arg name="height" type="int"/>
+      <arg name="stride" type="int"/>
+      <arg name="format" type="uint"/>
+    </request>
+
+    <request name="destroy" type="destructor">
+      <description summary="destroy the pool">
+	Destroy the pool.
+      </description>
+    </request>
+
+    <request name="resize">
+      <description summary="change the size of the pool mapping">
+	This request will cause the server to remap the backing memory
+	for the pool from the fd passed when the pool was creating but
+	using the new size.
+      </description>
+
+      <arg name="size" type="int"/>
+    </request>
+  </interface>
+
+  <interface name="wl_shm" version="1">
+    <description summary="shared memory support">
+      Support for shared memory buffers.
+    </description>
+
+    <enum name="error">
+      <entry name="invalid_format" value="0"/>
+      <entry name="invalid_stride" value="1"/>
+      <entry name="invalid_fd" value="2"/>
+    </enum>
+
+    <enum name="format">
+      <entry name="argb8888" value="0"/>
+      <entry name="xrgb8888" value="1"/>
+    </enum>
+
+    <request name="create_pool">
+      <description summary="create a shm pool">
+	This creates wl_shm_pool object, which can be used to create
+	shared memory based wl_buffer objects.  The server will mmap
+	size bytes of the passed fd, to use as backing memory for then
+	pool.
+      </description>
+
+      <arg name="id" type="new_id" interface="wl_shm_pool"/>
+      <arg name="fd" type="fd"/>
+      <arg name="size" type="int"/>
+    </request>
+
+    <event name="format">
+      <arg name="format" type="uint"/>
+    </event>
+  </interface>
+
+  <interface name="wl_buffer" version="1">
+    <description summary="content for a wl_surface">
+      A buffer provides the content for a wl_surface.  Buffers are
+      created through factory interfaces such as wl_drm, wl_shm or
+      similar.  It has a width and a height and can be attached to a
+      wl_surface, but the mechanism by which a client provides and
+      updates the contents is defined by the buffer factory interface
+    </description>
+
+    <request name="destroy" type="destructor">
+      <description summary="destroy a buffer">
+	Destroy a buffer.  This will invalidate the object id.
+      </description>
+    </request>
+
+    <event name="release">
+      <description summary="compositor releases buffer">
+	Sent when an attached buffer is no longer used by the compositor.
+      </description>
+    </event>
+  </interface>
+
+
+  <interface name="wl_data_offer" version="1">
+    <request name="accept">
+      <description summary="accept one of the offered mime-types">
+	Indicate that the client can accept the given mime-type, or
+	NULL for not accepted.  Use for feedback during drag and drop.
+      </description>
+
+      <arg name="serial" type="uint"/>
+      <arg name="type" type="string"/>
+    </request>
+
+    <request name="receive">
+      <arg name="mime_type" type="string"/>
+      <arg name="fd" type="fd"/>
+    </request>
+
+    <request name="destroy" type="destructor"/>
+
+    <event name="offer">
+      <description summary="advertise offered mime-type">
+	Sent immediately after creating the wl_data_offer object.  One
+	event per offered mime type.
+      </description>
+
+      <arg name="type" type="string"/>
+    </event>
+  </interface>
+
+  <interface name="wl_data_source" version="1">
+    <request name="offer">
+      <description summary="add an offered mime type">
+	This request adds a mime-type to the set of mime-types
+	advertised to targets.  Can be called several times to offer
+	multiple types.
+      </description>
+      <arg name="type" type="string"/>
+    </request>
+
+    <request name="destroy" type="destructor">
+      <description summary="destroy the data source">
+	Destroy the data source.
+      </description>
+    </request>
+
+    <event name="target">
+      <description summary="a target accepts an offered mime-type">
+	Sent when a target accepts pointer_focus or motion events.  If
+	a target does not accept any of the offered types, type is NULL.
+      </description>
+
+      <arg name="mime_type" type="string"/>
+    </event>
+
+    <event name="send">
+      <description summary="send the data">
+	Request for data from another client.  Send the data as the
+	specified mime-type over the passed fd, then close the fd.
+      </description>
+
+      <arg name="mime_type" type="string"/>
+      <arg name="fd" type="fd"/>
+    </event>
+
+    <event name="cancelled">
+      <description summary="selection was cancelled">
+	Another selection became active.
+      </description>
+    </event>
+
+  </interface>
+
+  <interface name="wl_data_device" version="1">
+    <request name="start_drag">
+      <description summary="start drag and drop operation">
+	This request asks the compositor to start a drag and drop
+	operation on behalf of the client.
+
+	The source argument is the data source that provides the data
+	for the eventual data transfer. If source is NULL, enter, leave
+	and motion events are sent only to the client that initiated the
+	drag and the client is expected to handle the data passing
+	internally.
+
+	The origin surface is the surface where the drag originates and
+	the client must have an active implicit grab that matches the
+	serial.
+
+	The icon surface is an optional (can be nil) surface that
+	provides an icon to be moved around with the cursor.  Initially,
+	the top-left corner of the icon surface is placed at the cursor
+	hotspot, but subsequent surface.attach request can move the
+	relative position.
+      </description>
+      <arg name="source" type="object" interface="wl_data_source"/>
+      <arg name="origin" type="object" interface="wl_surface"/>
+      <arg name="icon" type="object" interface="wl_surface"/>
+      <arg name="serial" type="uint"/>
+    </request>
+
+    <request name="set_selection">
+      <arg name="source" type="object" interface="wl_data_source"/>
+      <arg name="serial" type="uint"/>
+    </request>
+
+    <event name="data_offer">
+      <description summary="introduce a new wl_data_offer">
+	The data_offer event introduces a new wl_data_offer object,
+	which will subsequently be used in either the
+	data_device.enter event (for drag and drop) or the
+	data_device.selection event (for selections).  Immediately
+	following the data_device_data_offer event, the new data_offer
+	object will send out data_offer.offer events to describe the
+	mime-types it offers.
+      </description>
+
+      <arg name="id" type="new_id" interface="wl_data_offer"/>
+    </event>
+
+    <event name="enter">
+      <arg name="serial" type="uint"/>
+      <arg name="surface" type="object" interface="wl_surface"/>
+      <arg name="x" type="fixed"/>
+      <arg name="y" type="fixed"/>
+      <arg name="id" type="object" interface="wl_data_offer"/>
+    </event>
+
+    <event name="leave"/>
+
+    <event name="motion">
+      <arg name="time" type="uint"/>
+      <arg name="x" type="fixed"/>
+      <arg name="y" type="fixed"/>
+    </event>
+
+    <event name="drop"/>
+
+    <event name="selection">
+      <description summary="advertise new selection">
+	The selection event is sent out to notify the client of a new
+	wl_data_offer for the selection for this device.  The
+	data_device.data_offer and the data_offer.offer events are
+	sent out immediately before this event to introduce the data
+	offer object.  The selection event is sent to a client
+	immediately before receiving keyboard focus and when a new
+	selection is set while the client has keyboard focus.  The
+	data_offer is valid until a new data_offer or NULL is received
+	or until the client loses keyboard focus.
+      </description>
+      <arg name="id" type="object" interface="wl_data_offer"/>
+    </event>
+  </interface>
+
+  <interface name="wl_data_device_manager" version="1">
+    <request name="create_data_source">
+      <arg name="id" type="new_id" interface="wl_data_source"/>
+    </request>
+
+    <request name="get_data_device">
+      <arg name="id" type="new_id" interface="wl_data_device"/>
+      <arg name="seat" type="object" interface="wl_seat"/>
+    </request>
+  </interface>
+
+  <interface name="wl_shell" version="1">
+    <request name="get_shell_surface">
+      <arg name="id" type="new_id" interface="wl_shell_surface"/>
+      <arg name="surface" type="object" interface="wl_surface"/>
+    </request>
+  </interface>
+
+  <interface name="wl_shell_surface" version="1">
+
+    <description summary="desktop style meta data interface">
+      An interface implemented by a wl_surface.  On server side the
+      object is automatically destroyed when the related wl_surface is
+      destroyed.  On client side, wl_shell_surface_destroy() must be
+      called before destroying the wl_surface object.
+    </description>
+
+    <request name="pong">
+      <description summary="respond to a ping event">
+	A client must respond to a ping event with a pong request or
+	the client may be deemed unresponsive.
+      </description>
+      <arg name="serial" type="uint"/>
+    </request>
+
+    <request name="move">
+      <arg name="seat" type="object" interface="wl_seat"/>
+      <arg name="serial" type="uint"/>
+    </request>
+
+    <enum name="resize">
+      <entry name="none" value="0"/>
+      <entry name="top" value="1"/>
+      <entry name="bottom" value="2"/>
+      <entry name="left" value="4"/>
+      <entry name="top_left" value="5"/>
+      <entry name="bottom_left" value="6"/>
+      <entry name="right" value="8"/>
+      <entry name="top_right" value="9"/>
+      <entry name="bottom_right" value="10"/>
+    </enum>
+
+    <request name="resize">
+      <arg name="seat" type="object" interface="wl_seat"/>
+      <arg name="serial" type="uint"/>
+      <arg name="edges" type="uint"/>
+    </request>
+
+    <request name="set_toplevel">
+      <description summary="make the surface a top level surface">
+	Make the surface a toplevel window.
+      </description>
+    </request>
+
+    <enum name="transient">
+      <entry name="inactive" value="0x1" summary="do not set keyboard focus"/>
+    </enum>
+
+    <request name="set_transient">
+      <description summary="make the surface a transient surface">
+	Map the surface relative to an existing surface. The x and y
+	arguments specify the locations of the upper left corner of
+	the surface relative to the upper left corner of the parent
+	surface.  The flags argument controls overflow/clipping
+	behaviour when the surface would intersect a screen edge,
+	panel or such.  And possibly whether the offset only
+	determines the initial position or if the surface is locked to
+	that relative position during moves.
+      </description>
+
+      <arg name="parent" type="object" interface="wl_surface"/>
+      <arg name="x" type="int"/>
+      <arg name="y" type="int"/>
+      <arg name="flags" type="uint"/>
+    </request>
+
+    <request name="set_fullscreen">
+      <description summary="make the surface a fullscreen surface">
+        Map the surface as a fullscreen surface. If an output parameter is
+        given then the surface will be made fullscreen on that output. If the
+        client does not specify the output then the compositor will apply its
+        policy - usually choosing the output on which the surface has the
+        biggest surface area.
+
+        The client may specify a method to resolve a size conflict between the
+        output size and the surface size - this is provided through the
+        fullscreen_method parameter.
+
+        The framerate parameter is used only when the fullscreen_method is set
+        to "driver", to indicate the preferred framerate. framerate=0 indicates
+        that the app does not care about framerate.  The framerate is
+        specified in mHz, that is framerate of 60000 is 60Hz.
+
+        The compositor must reply to this request with a configure event with
+        the dimensions for the output on which the surface will be made fullscreen.
+      </description>
+      <arg name="method" type="uint"/>
+      <arg name="framerate" type="uint"/>
+      <arg name="output" type="object" interface="wl_output"/>
+    </request>
+
+    <enum name="fullscreen_method">
+      <description summary="different method to set the surface fullscreen">
+        Hints to indicate compositor how to deal with a conflict between the
+        dimensions for the surface and the dimensions of the output. As a hint
+        the compositor is free to ignore this parameter.
+
+        "default" The client has no preference on fullscreen behavior,
+        policies are determined by compositor.
+
+        "scale" The client prefers scaling by the compositor. Scaling would
+        always preserve surface's aspect ratio with surface centered on the
+        output
+
+        "driver" The client wants to switch video mode to the smallest mode
+        that can fit the client buffer. If the sizes do not match the
+        compositor must add black borders.
+
+        "fill" The surface is centered on the output on the screen with no
+        scaling. If the surface is of insufficient size the compositor must
+        add black borders.
+      </description>
+      <entry name="default" value="0"/>
+      <entry name="scale" value="1"/>
+      <entry name="driver" value="2"/>
+      <entry name="fill" value="3"/>
+    </enum>
+
+    <request name="set_popup">
+      <description summary="make the surface a popup surface">
+	Popup surfaces.  Will switch an implicit grab into
+	owner-events mode, and grab will continue after the implicit
+	grab ends (button released).  Once the implicit grab is over,
+	the popup grab continues until the window is destroyed or a
+	mouse button is pressed in any other clients window.  A click
+	in any of the clients surfaces is reported as normal, however,
+	clicks in other clients surfaces will be discarded and trigger
+	the callback.
+
+	TODO: Grab keyboard too, maybe just terminate on any click
+	inside or outside the surface?
+      </description>
+
+      <arg name="seat" type="object" interface="wl_seat"/>
+      <arg name="serial" type="uint"/>
+      <arg name="parent" type="object" interface="wl_surface"/>
+      <arg name="x" type="int"/>
+      <arg name="y" type="int"/>
+      <arg name="flags" type="uint"/>
+    </request>
+
+    <request name="set_maximized">
+      <description summary="make the surface a maximized surface">
+	A request from the client to notify the compositor the maximized
+	operation. The compositor will reply with a configure event telling
+        the expected new surface size. The operation is completed on the
+        next buffer attach to this surface.
+        A maximized client will fill the fullscreen of the output it is bound
+        to, except the panel area. This is the main difference between
+        a maximized shell surface and a fullscreen shell surface.
+      </description>
+      <arg name="output" type="object" interface="wl_output"/>
+    </request>
+
+    <request name="set_title">
+      <description summary="set surface title">
+      </description>
+      <arg name="title" type="string"/>
+    </request>
+
+    <request name="set_class">
+      <description summary="set surface class">
+	The surface class identifies the general class of applications
+	to which the surface belongs.  The class is the file name of
+	the applications .desktop file (absolute path if non-standard
+	location). 
+      </description>
+      <arg name="class_" type="string"/>
+    </request>
+
+    <event name="ping">
+      <description summary="ping client">
+	Ping a client to check if it is receiving events and sending
+	requests. A client is expected to reply with a pong request.
+      </description>
+      <arg name="serial" type="uint"/>
+    </event>
+
+    <event name="configure">
+      <description summary="suggest resize">
+	The configure event asks the client to resize its surface.
+	The size is a hint, in the sense that the client is free to
+	ignore it if it doesn't resize, pick a smaller size (to
+	satisfy aspect ration or resize in steps of NxM pixels).  The
+	client is free to dismiss all but the last configure event it
+	received.
+      </description>
+
+      <arg name="edges" type="uint"/>
+      <arg name="width" type="int"/>
+      <arg name="height" type="int"/>
+    </event>
+
+    <event name="popup_done">
+      <description summary="popup interaction is done">
+	The popup_done event is sent out when a popup grab is broken,
+	that is, when the users clicks a surface that doesn't belong
+	to the client owning the popup surface.
+      </description>
+    </event>
+  </interface>
+
+  <interface name="wl_surface" version="1">
+    <description summary="an onscreen surface">
+      A surface.  This is an image that is displayed on the screen.
+      It has a location, size and pixel contents.
+    </description>
+
+    <request name="destroy" type="destructor">
+      <description summary="delete surface">
+	Deletes the surface and invalidates its object id.
+      </description>
+    </request>
+
+    <request name="attach">
+      <description summary="set the surface contents">
+	Copy the contents of a buffer into this surface. The x and y
+	arguments specify the location of the new buffers upper left
+	corner, relative to the old buffers upper left corner.
+      </description>
+
+      <arg name="buffer" type="object" interface="wl_buffer"/>
+      <arg name="x" type="int"/>
+      <arg name="y" type="int"/>
+    </request>
+
+    <request name="damage">
+      <description summary="mark part of the surface damaged">
+	After attaching a new buffer, this request is used to describe
+	the regions where the new buffer is different from the
+	previous buffer and needs to be repainted.  Coordinates are
+	relative to the new buffer.
+      </description>
+
+      <arg name="x" type="int"/>
+      <arg name="y" type="int"/>
+      <arg name="width" type="int"/>
+      <arg name="height" type="int"/>
+    </request>
+
+    <request name="frame">
+      <description summary="request repaint feedback">
+	Request notification when the next frame is displayed.  Useful
+	for throttling redrawing operations, and driving animations.
+	The notification will only be posted for one frame unless
+	requested again.
+      </description>
+
+      <arg name="callback" type="new_id" interface="wl_callback"/>
+    </request>
+
+    <request name="set_opaque_region">
+      <description summary="set opaque region">
+	This requests sets the region of the surface that contain
+	opaque content.  The opaque region is an optimization hint for
+	the compositor that lets it optimize out redrawing of content
+	behind opaque regions.  Setting an opaque region is not
+	required for correct behaviour, but marking transparent
+	content as opaque will result in repaint artifacts.
+
+	The region will be clipped to the extents of the current
+	surface size.  Setting the region has copy semantics, and the
+	region object can be destroyed immediately after setting the
+	opaque region.  If a buffer of a different size is attached or
+	if a nil region is set, the opaque region will revert back to
+	default.  The default opaque region is empty.
+      </description>
+
+      <arg name="region" type="object" interface="wl_region"/>
+    </request>
+
+    <request name="set_input_region">
+      <description summary="set input region">
+	This requests sets the region of the surface that can receive
+	pointer and touch events.  The region will be clipped to the
+	extents of the current surface size.  Setting the region has
+	copy semantics, and the region object can be destroyed
+	immediately after setting the input region.  If a buffer of a
+	different size is attached or if a nil region is passed, the
+	input region will revert back to default.  The default input
+	region is the entire surface.
+      </description>
+
+      <arg name="region" type="object" interface="wl_region"/>
+    </request>
+
+    <event name="enter">
+      <description summary="surface enters an output">
+        This is emitted whenever a surface's creation, movement, or resizing
+        results in some part of it being within the scanout region of an
+        output.
+      </description>
+      <arg name="output" type="object" interface="wl_output"/>
+    </event>
+
+    <event name="leave">
+      <description summary="surface leaves an output">
+        This is emitted whenever a surface's creation, movement, or resizing
+        results in it no longer having any part of it within the scanout region
+        of an output.
+      </description>
+      <arg name="output" type="object" interface="wl_output"/>
+    </event>
+  </interface>
+
+  <interface name="wl_seat" version="1">
+    <description summary="seat">
+      A group of keyboards, pointer (mice, for example) and touch
+      devices . This object is published as a global during start up,
+      or when such a device is hot plugged.  A seat typically has a
+      pointer and maintains a keyboard_focus and a pointer_focus.
+    </description>
+
+    <enum name="capability">
+      <description summary="seat capability bitmask">
+        This is a bitmask of capabilities this seat has; if a member is
+	set, then it is present on the seat.
+      </description>
+      <entry name="pointer" value="1" summary="wl_pointer"/>
+      <entry name="keyboard" value="2" summary="wl_keyboard"/>
+      <entry name="touch" value="4" summary="wl_touch"/>
+    </enum>
+
+
+    <event name="capabilities">
+      <description summary="seat capabilities changed">
+        This is emitted whenever a seat gains or loses the pointer,
+	keyboard or touch capabilities.  The argument is a wl_seat_caps_mask
+	enum containing the complete set of capabilities this seat has.
+      </description>
+      <arg name="capabilities" type="uint"/>
+    </event>
+
+    <request name="get_pointer">
+      <description summary="return pointer object">
+        The ID provided will be initialized to the wl_pointer interface
+	for this seat.
+      </description>
+      <arg name="id" type="new_id" interface="wl_pointer"/>
+    </request>
+
+    <request name="get_keyboard">
+      <description summary="return pointer object">
+        The ID provided will be initialized to the wl_keyboard interface
+	for this seat.
+      </description>
+      <arg name="id" type="new_id" interface="wl_keyboard"/>
+    </request>
+
+    <request name="get_touch">
+      <description summary="return pointer object">
+        The ID provided will be initialized to the wl_touch interface
+	for this seat.
+      </description>
+      <arg name="id" type="new_id" interface="wl_touch"/>
+    </request>
+  </interface>
+
+  <interface name="wl_pointer" version="1">
+    <request name="set_cursor">
+      <description summary="set the pointer surface">
+	Set the pointer surface, i.e., the surface that contains the
+	pointer image. This request only takes effect if the pointer
+	focus for this device is one of the requesting client surfaces
+	or the surface parameter is the current pointer surface. If
+	there was a previous surface set with this request it is
+	replaced. If surface is NULL, the pointer image is hidden.
+
+	The parameters hotspot_x and hotspot_y define the position of
+	the pointer surface relative to the pointer location. Its
+	top-left corner is always at (x, y) - (hotspot_x, hotspot_y),
+	where (x, y) are the coordinates of the pointer location.
+
+	On surface.attach requests to the pointer surface, hotspot_x
+	and hotspot_y are decremented by the x and y parameters
+	passed to the request.
+
+	The hotspot can also be updated by passing the current set
+	pointer surface to this request with new values for hotspot_x
+	and/or hotspot_y.
+      </description>
+
+      <arg name="serial" type="uint"/>
+      <arg name="surface" type="object" interface="wl_surface"/>
+      <arg name="hotspot_x" type="int"/>
+      <arg name="hotspot_y" type="int"/>
+    </request>
+
+    <event name="enter">
+      <description summary="enter event">
+	Notification that this seat's pointer is focused on a certain
+	surface. When an seat's focus enters a surface, the pointer image
+	is undefined and a client should respond to this event by setting
+	an appropriate pointer image.
+      </description>
+
+      <arg name="serial" type="uint"/>
+      <arg name="surface" type="object" interface="wl_surface"/>
+      <arg name="surface_x" type="fixed"/>
+      <arg name="surface_y" type="fixed"/>
+    </event>
+
+    <event name="leave">
+      <description summary="leave event">
+      </description>
+      <arg name="serial" type="uint"/>
+      <arg name="surface" type="object" interface="wl_surface"/>
+    </event>
+
+    <event name="motion">
+      <description summary="pointer motion event">
+	Notification of pointer location change. The arguments surface_[xy]
+	are the location relative to the focused surface.
+      </description>
+
+      <arg name="time" type="uint"/>
+      <arg name="surface_x" type="fixed"/>
+      <arg name="surface_y" type="fixed"/>
+    </event>
+
+    <enum name="button_state">
+      <description summary="physical button state">
+        Describes the physical state of a button which provoked the button
+	event.
+      </description>
+      <entry name="released" value="0" summary="button is not pressed"/>
+      <entry name="pressed" value="1" summary="button is pressed"/>
+    </enum>
+
+    <event name="button">
+      <description summary="pointer button event">
+	Mouse button click and release notifications.  The location
+	of the click is given by the last motion or pointer_focus event.
+      </description>
+
+      <arg name="serial" type="uint"/>
+      <arg name="time" type="uint"/>
+      <arg name="button" type="uint"/>
+      <arg name="state" type="uint"/>
+    </event>
+
+    <enum name="axis">
+      <description summary="axis types"/>
+      <entry name="vertical_scroll" value="0"/>
+      <entry name="horizontal_scroll" value="1"/>
+    </enum>
+
+    <event name="axis">
+      <description summary="axis event">
+	Scroll and other axis notifications.
+      </description>
+
+      <arg name="time" type="uint"/>
+      <arg name="axis" type="uint"/>
+      <arg name="value" type="fixed"/>
+    </event>
+  </interface>
+
+  <interface name="wl_keyboard" version="1">
+    <description summary="keyboard input device">
+    </description>
+
+    <enum name="keymap_format">
+      <description summary="keyboard mapping format">
+        This enum specifies the format of the keymap provided to the client
+	with the wl_keyboard::keymap event.
+      </description>
+      <entry name="xkb_v1" value="1" description="libxkbcommon compatible"/>
+    </enum>
+
+    <event name="keymap">
+      <description summary="keyboard mapping">
+        This event provides a file descriptor to the client which can be
+	memory-mapped to provide a keyboard mapping description.
+      </description>
+      <arg name="format" type="uint"/>
+      <arg name="fd" type="fd"/>
+      <arg name="size" type="uint"/>
+    </event>
+
+    <event name="enter">
+      <arg name="serial" type="uint"/>
+      <arg name="surface" type="object" interface="wl_surface"/>
+      <arg name="keys" type="array"/>
+    </event>
+
+    <event name="leave">
+      <arg name="serial" type="uint"/>
+      <arg name="surface" type="object" interface="wl_surface"/>
+    </event>
+
+    <enum name="key_state">
+      <description summary="physical key state">
+        Describes the physical state of a key which provoked the key event.
+	When a key repeats, the sequence is down -> repeat -> repeat -> up.
+      </description>
+      <entry name="released" value="0" summary="key is not pressed"/>
+      <entry name="pressed" value="1" summary="key is pressed"/>
+      <entry name="repeat" value="2" summary="key is pressed and repeating"/>
+    </enum>
+
+    <event name="key">
+      <description summary="key event">
+	A key was pressed or released.
+      </description>
+
+      <arg name="serial" type="uint"/>
+      <arg name="time" type="uint"/>
+      <arg name="key" type="uint"/>
+      <arg name="state" type="uint"/>
+    </event>
+
+    <event name="modifiers">
+      <description summary="modifier and group state">
+        Notifies clients that the modifier and/or group state has
+	changed, and it should update its local state.
+      </description>
+
+      <arg name="serial" type="uint"/>
+      <arg name="mods_depressed" type="uint"/>
+      <arg name="mods_latched" type="uint"/>
+      <arg name="mods_locked" type="uint"/>
+      <arg name="group" type="uint"/>
+    </event>
+  </interface>
+
+  <interface name="wl_touch" version="1">
+    <description summary="touch screen input device">
+    </description>
+
+    <event name="down">
+      <arg name="serial" type="uint"/>
+      <arg name="time" type="uint"/>
+      <arg name="surface" type="object" interface="wl_surface"/>
+      <arg name="id" type="int" />
+      <arg name="x" type="fixed" />
+      <arg name="y" type="fixed" />
+    </event>
+
+    <event name="up">
+      <arg name="serial" type="uint"/>
+      <arg name="time" type="uint"/>
+      <arg name="id" type="int" />
+    </event>
+
+    <event name="motion">
+      <arg name="time" type="uint"/>
+      <arg name="id" type="int" />
+      <arg name="x" type="fixed" />
+      <arg name="y" type="fixed" />
+    </event>
+
+    <event name="frame">
+      <description summary="end of touch frame event">
+	Indicates the end of a contact point list.
+      </description>
+    </event>
+
+    <event name="cancel">
+      <description summary="touch session cancelled">
+	Sent if the compositor decides the touch stream is a global
+	gesture. No further events are sent to the clients from that
+	particular gesture.
+      </description>
+    </event>
+  </interface>
+
+
+  <interface name="wl_output" version="1">
+    <description summary="compositor output region">
+      An output describes part of the compositor geometry.  The
+      compositor work in the 'compositor coordinate system' and an
+      output corresponds to rectangular area in that space that is
+      actually visible.  This typically corresponds to a monitor that
+      displays part of the compositor space.  This object is published
+      as global during start up, or when a screen is hot plugged.
+    </description>
+
+    <enum name="subpixel">
+      <entry name="unknown" value="0"/>
+      <entry name="none" value="1"/>
+      <entry name="horizontal_rgb" value="2"/>
+      <entry name="horizontal_bgr" value="3"/>
+      <entry name="vertical_rgb" value="4"/>
+      <entry name="vertical_bgr" value="5"/>
+    </enum>
+
+    <event name="geometry">
+      <description summary="properties of the output"/>
+      <arg name="x" type="int"
+	   summary="x position within the global compositor space"/>
+      <arg name="y" type="int"
+	   summary="y position within the global compositor space"/>
+      <arg name="physical_width" type="int"
+	   summary="width in milimeters of the output"/>
+      <arg name="physical_height" type="int"
+	   summary="height in milimeters of the output"/>
+      <arg name="subpixel" type="int"
+	   summary="subpixel orientation of the output"/>
+      <arg name="make" type="string"
+	   summary="textual description of the manufacturer"/>
+      <arg name="model" type="string"
+	   summary="textual description of the model"/>
+    </event>
+
+    <enum name="mode">
+      <description summary="values for the flags bitfield in the mode event"/>
+      <entry name="current" value="0x1"
+	     summary="indicates this is the current mode"/>
+      <entry name="preferred" value="0x2"
+	     summary="indicates this is the preferred mode"/>
+    </enum>
+      
+    <event name="mode">
+      <description summary="advertise available modes for the output">
+	The mode event describes an available mode for the output.
+	The event is sent when binding to the output object and there
+	will always be one mode, the current mode.  The event is sent
+	again if an output changes mode, for the mode that is now
+	current.  In other words, the current mode is always the last
+	mode that was received with the current flag set.
+      </description>
+      <arg name="flags" type="uint" summary="mask of wl_output_mode flags"/>
+      <arg name="width" type="int" summary="width of the mode in pixels"/>
+      <arg name="height" type="int" summary="height of the mode in pixels"/>
+      <arg name="refresh" type="int" summary="vertical refresh rate in mHz"/>
+    </event>
+  </interface>
+
+  <interface name="wl_region" version="1">
+    <description summary="region interface">
+      Region.
+    </description>
+
+    <request name="destroy" type="destructor">
+      <description summary="destroy region">
+	Destroy the region.  This will invalidate the object id.
+      </description>
+    </request>
+
+    <request name="add">
+      <description summary="add rectangle to region">
+	Add the specified rectangle to the region
+      </description>
+
+      <arg name="x" type="int"/>
+      <arg name="y" type="int"/>
+      <arg name="width" type="int"/>
+      <arg name="height" type="int"/>
+    </request>
+
+    <request name="subtract">
+      <description summary="subtract rectangle from region">
+	Subtract the specified rectangle from the region
+      </description>
+
+      <arg name="x" type="int"/>
+      <arg name="y" type="int"/>
+      <arg name="width" type="int"/>
+      <arg name="height" type="int"/>
+    </request>
+
+  </interface>
+
+</protocol>
