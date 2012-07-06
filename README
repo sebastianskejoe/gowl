@@ -1,5 +1,9 @@
 Gowl (Go-bindings for wayland)
 ======
+This library is ONLY for communicating with the wayland protocol. If you want to
+actually create windows and similar, you'll need to write the code to do that
+yourself.
+
 Before building display.patch needs to be applied:
 
 	patch -p 1 < display.patch
