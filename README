@@ -1,0 +1,18 @@
+Gowl (Go-bindings for wayland)
+======
+Before building display.patch needs to be applied:
+
+	patch -p 1 < display.patch
+
+To run the test application, start weston and run:
+
+	go run test/main.go
+
+For now generated files are included in the git repository. If you would like to
+generate the files yourself, run the following commands from the root of the
+fetched repository:
+
+	cd generator/
+	go run generate.go
+
+generate.go places the generated files in the directory above the current.
