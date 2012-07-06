@@ -12,10 +12,17 @@ import (
 )
 
 type Connection struct {
-	fd int
-	sockaddr syscall.Sockaddr
+	unixconn *net.UnixConn
+	addr *net.UnixAddr
 	reader *bufio.Reader
 	writer *bufio.Writer
+}
+
+type message struct {
+	obj Object
+	opcode int16
+	buf *bytes.Buffer
+	fd uintptr
 }
 
 var conn Connection
@@ -23,14 +30,15 @@ var conn Connection
 func connect_to_socket() {
 	// Connect to socket
 	addr := fmt.Sprintf("%s/%s", os.Getenv("XDG_RUNTIME_DIR"), "wayland-0")
-	c,err := net.Dial("unix", addr)
+	c,err := net.DialUnix("unix", conn.addr, &net.UnixAddr{addr, "unix"})
 	if err != nil {
-		fmt.Println(err)
+		fmt.Println("Connect",err)
 		return
 	}
 
 	conn.reader = bufio.NewReader(c)
 	conn.writer = bufio.NewWriter(c)
+	conn.unixconn = c
 }
 
 func getmsg() (id int32, opcode int16, size int16, msg []byte, remain int, err error) {
@@ -66,15 +74,16 @@ func getmsg() (id int32, opcode int16, size int16, msg []byte, remain int, err e
 	return
 }
 
-func sendmsg(obj Object, opcode int16, msg []byte) {
-	size := len(msg)
+//func sendmsg(obj Object, opcode int16) {
+func sendmsg(msg *message) {
+	size := len(msg.buf.Bytes())
 	buf := new(bytes.Buffer)
-	writeInteger(buf, obj.Id())
-	writeInteger(buf, opcode)
-	writeInteger(buf, int16(size+8))
-	binary.Write(buf, binary.LittleEndian, msg)
+	binary.Write(buf, binary.LittleEndian, msg.obj.Id())
+	binary.Write(buf, binary.LittleEndian, msg.opcode)
+	binary.Write(buf, binary.LittleEndian, int16(size+8))
+	binary.Write(buf, binary.LittleEndian, msg.buf.Bytes())
 
-	err := binary.Write(conn.writer, binary.LittleEndian, buf.Bytes())
+/*	err := binary.Write(conn.writer, binary.LittleEndian, buf.Bytes())
 	if err != nil {
 		fmt.Println(err)
 		return
@@ -83,7 +92,17 @@ func sendmsg(obj Object, opcode int16, msg []byte) {
 	if err != nil {
 		fmt.Println(err)
 		return
+	}*/
+	var cmsgbytes []byte
+	if msg.fd != 0 {
+		cmsgbytes = syscall.UnixRights(int(msg.fd))
 	}
+	_,_,err := conn.unixconn.WriteMsgUnix(buf.Bytes(), cmsgbytes, nil)
+	if err != nil {
+		fmt.Println("sendmsg",err)
+		return
+	}
+	syscall.Close(int(msg.fd))
 }
 
 func readUintptr(buf io.Reader) (uintptr, error) {
@@ -138,7 +157,7 @@ func readString(c io.Reader) (uint32, string, error) {
 		return 0, "", err
 	}
 	// Now get string
-	str := make([]byte, strlen)
+	str := make([]byte, strlen-1)
 	_,err = c.Read(str)
 	if err != nil {
 		return 0, "", err
@@ -148,7 +167,7 @@ func readString(c io.Reader) (uint32, string, error) {
 	if pad == 4 {
 		pad = 0
 	}
-	for i := uint32(0) ; i < pad ; i++ {
+	for i := uint32(0) ; i <= pad ; i++ {
 		binary.Read(c, binary.LittleEndian, []byte{0})
 	}
 	return strlen, string(str), nil
@@ -158,20 +177,38 @@ func readArray(c io.Reader) ([]interface{}, error) {
 	return nil, nil
 }
 
-func writeInteger(c io.Writer, val interface{}) {
-	binary.Write(c, binary.LittleEndian, val)
+func writeInteger(msg *message, val interface{}) {
+	err := binary.Write(msg.buf, binary.LittleEndian, val)
+	if err != nil {
+		fmt.Println(err)
+	}
 }
 
-func writeString(c io.Writer, val []byte) {
+func writeString(msg *message, val []byte) {
 	// First get padding
 	pad := 4-(len(val) % 4)
-	if pad == 4 {
-		pad = 0
-	}
+//	if pad == 4 {
+//		pad = 0
+//	}
 
-	writeInteger(c, int32(len(val)+pad))
-	binary.Write(c, binary.LittleEndian, val)
+	writeInteger(msg, int32(len(val)+pad))
+	binary.Write(msg.buf, binary.LittleEndian, val)
 	for i := 0 ; i < pad ; i++ {
-		binary.Write(c, binary.LittleEndian, []byte{0})
+		binary.Write(msg.buf, binary.LittleEndian, []byte{0})
+	}
+}
+
+func writeFd(msg *message, val uintptr) {
+	newfd,_,_ := syscall.Syscall(syscall.SYS_FCNTL, val, syscall.F_DUPFD_CLOEXEC, 0)
+	msg.fd = newfd
+	fmt.Println("fd", newfd,val)
+}
+
+func newMessage(obj Object, opcode int16) *message {
+	return &message{
+		obj: obj,
+		opcode: opcode,
+		buf: new(bytes.Buffer),
+		fd: 0,
 	}
 }
