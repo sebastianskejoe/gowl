@@ -1,10 +1,4 @@
-
 package gowl
-
-import (
-	"bytes"
-)
-
 type Compositor struct {
 //	*WlObject
 	id int32
@@ -13,20 +7,22 @@ type Compositor struct {
 }
 
 //// Requests
-func (c *Compositor) Create_surface (id *Surface ) {
-	buf := new(bytes.Buffer)
+func (c *Compositor) Create_surface (id *Surface) {
+	msg := newMessage(c, 0)
 	appendObject(id)
-	writeInteger(buf, id.Id())
+	writeInteger(msg,id.Id())
 
-	sendmsg(c, 0, buf.Bytes())
+	sendmsg(msg)
+	printRequest("compositor", "create_surface", id)
 }
 
-func (c *Compositor) Create_region (id *Region ) {
-	buf := new(bytes.Buffer)
+func (c *Compositor) Create_region (id *Region) {
+	msg := newMessage(c, 1)
 	appendObject(id)
-	writeInteger(buf, id.Id())
+	writeInteger(msg,id.Id())
 
-	sendmsg(c, 1, buf.Bytes())
+	sendmsg(msg)
+	printRequest("compositor", "create_region", id)
 }
 
 //// Events

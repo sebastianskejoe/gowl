@@ -1,10 +1,4 @@
-
 package gowl
-
-import (
-	"bytes"
-)
-
 type Region struct {
 //	*WlObject
 	id int32
@@ -13,30 +7,33 @@ type Region struct {
 }
 
 //// Requests
-func (r *Region) Destroy ( ) {
-	buf := new(bytes.Buffer)
+func (r *Region) Destroy () {
+	msg := newMessage(r, 0)
 
-	sendmsg(r, 0, buf.Bytes())
+	sendmsg(msg)
+	printRequest("region", "destroy", )
 }
 
-func (r *Region) Add (x int32, y int32, width int32, height int32 ) {
-	buf := new(bytes.Buffer)
-	writeInteger(buf, x)
-	writeInteger(buf, y)
-	writeInteger(buf, width)
-	writeInteger(buf, height)
+func (r *Region) Add (x int32, y int32, width int32, height int32) {
+	msg := newMessage(r, 1)
+	writeInteger(msg,x)
+	writeInteger(msg,y)
+	writeInteger(msg,width)
+	writeInteger(msg,height)
 
-	sendmsg(r, 1, buf.Bytes())
+	sendmsg(msg)
+	printRequest("region", "add", x, y, width, height)
 }
 
-func (r *Region) Subtract (x int32, y int32, width int32, height int32 ) {
-	buf := new(bytes.Buffer)
-	writeInteger(buf, x)
-	writeInteger(buf, y)
-	writeInteger(buf, width)
-	writeInteger(buf, height)
+func (r *Region) Subtract (x int32, y int32, width int32, height int32) {
+	msg := newMessage(r, 2)
+	writeInteger(msg,x)
+	writeInteger(msg,y)
+	writeInteger(msg,width)
+	writeInteger(msg,height)
 
-	sendmsg(r, 2, buf.Bytes())
+	sendmsg(msg)
+	printRequest("region", "subtract", x, y, width, height)
 }
 
 //// Events

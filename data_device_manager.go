@@ -1,10 +1,4 @@
-
 package gowl
-
-import (
-	"bytes"
-)
-
 type Data_device_manager struct {
 //	*WlObject
 	id int32
@@ -13,21 +7,23 @@ type Data_device_manager struct {
 }
 
 //// Requests
-func (d *Data_device_manager) Create_data_source (id *Data_source ) {
-	buf := new(bytes.Buffer)
+func (d *Data_device_manager) Create_data_source (id *Data_source) {
+	msg := newMessage(d, 0)
 	appendObject(id)
-	writeInteger(buf, id.Id())
+	writeInteger(msg,id.Id())
 
-	sendmsg(d, 0, buf.Bytes())
+	sendmsg(msg)
+	printRequest("data_device_manager", "create_data_source", id)
 }
 
-func (d *Data_device_manager) Get_data_device (id *Data_device, seat *Seat ) {
-	buf := new(bytes.Buffer)
+func (d *Data_device_manager) Get_data_device (id *Data_device, seat *Seat) {
+	msg := newMessage(d, 1)
 	appendObject(id)
-	writeInteger(buf, id.Id())
-	writeInteger(buf, seat.Id())
+	writeInteger(msg,id.Id())
+	writeInteger(msg,seat.Id())
 
-	sendmsg(d, 1, buf.Bytes())
+	sendmsg(msg)
+	printRequest("data_device_manager", "get_data_device", id, seat)
 }
 
 //// Events

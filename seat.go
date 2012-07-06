@@ -1,9 +1,10 @@
-
 package gowl
 
 import (
 	"bytes"
 )
+
+var _ bytes.Buffer
 
 type Seat struct {
 //	*WlObject
@@ -13,28 +14,31 @@ type Seat struct {
 }
 
 //// Requests
-func (s *Seat) Get_pointer (id *Pointer ) {
-	buf := new(bytes.Buffer)
+func (s *Seat) Get_pointer (id *Pointer) {
+	msg := newMessage(s, 0)
 	appendObject(id)
-	writeInteger(buf, id.Id())
+	writeInteger(msg,id.Id())
 
-	sendmsg(s, 0, buf.Bytes())
+	sendmsg(msg)
+	printRequest("seat", "get_pointer", id)
 }
 
-func (s *Seat) Get_keyboard (id *Keyboard ) {
-	buf := new(bytes.Buffer)
+func (s *Seat) Get_keyboard (id *Keyboard) {
+	msg := newMessage(s, 1)
 	appendObject(id)
-	writeInteger(buf, id.Id())
+	writeInteger(msg,id.Id())
 
-	sendmsg(s, 1, buf.Bytes())
+	sendmsg(msg)
+	printRequest("seat", "get_keyboard", id)
 }
 
-func (s *Seat) Get_touch (id *Touch ) {
-	buf := new(bytes.Buffer)
+func (s *Seat) Get_touch (id *Touch) {
+	msg := newMessage(s, 2)
 	appendObject(id)
-	writeInteger(buf, id.Id())
+	writeInteger(msg,id.Id())
 
-	sendmsg(s, 2, buf.Bytes())
+	sendmsg(msg)
+	printRequest("seat", "get_touch", id)
 }
 
 //// Events
@@ -53,7 +57,6 @@ func (s *Seat) AddCapabilitiesListener(channel chan interface{}) {
 }
 
 func seat_capabilities(s *Seat, msg []byte) {
-	printEvent("capabilities", msg)
 	var data SeatCapabilities
 	buf := bytes.NewBuffer(msg)
 
@@ -66,6 +69,7 @@ func seat_capabilities(s *Seat, msg []byte) {
 	for _,channel := range s.listeners[0] {
 		go func () { channel <- data }()
 	}
+	printEvent("seat", "capabilities", capabilities)
 }
 
 func NewSeat() (s *Seat) {

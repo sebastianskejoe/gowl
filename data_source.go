@@ -1,9 +1,10 @@
-
 package gowl
 
 import (
 	"bytes"
 )
+
+var _ bytes.Buffer
 
 type Data_source struct {
 //	*WlObject
@@ -13,17 +14,19 @@ type Data_source struct {
 }
 
 //// Requests
-func (d *Data_source) Offer (typ string ) {
-	buf := new(bytes.Buffer)
-	writeString(buf, []byte(typ))
+func (d *Data_source) Offer (typ string) {
+	msg := newMessage(d, 0)
+	writeString(msg,[]byte(typ))
 
-	sendmsg(d, 0, buf.Bytes())
+	sendmsg(msg)
+	printRequest("data_source", "offer", typ)
 }
 
-func (d *Data_source) Destroy ( ) {
-	buf := new(bytes.Buffer)
+func (d *Data_source) Destroy () {
+	msg := newMessage(d, 1)
 
-	sendmsg(d, 1, buf.Bytes())
+	sendmsg(msg)
+	printRequest("data_source", "destroy", )
 }
 
 //// Events
@@ -42,7 +45,6 @@ func (d *Data_source) AddTargetListener(channel chan interface{}) {
 }
 
 func data_source_target(d *Data_source, msg []byte) {
-	printEvent("target", msg)
 	var data Data_sourceTarget
 	buf := bytes.NewBuffer(msg)
 
@@ -55,6 +57,7 @@ func data_source_target(d *Data_source, msg []byte) {
 	for _,channel := range d.listeners[0] {
 		go func () { channel <- data }()
 	}
+	printEvent("data_source", "target", mime_type)
 }
 
 type Data_sourceSend struct {
@@ -67,7 +70,6 @@ func (d *Data_source) AddSendListener(channel chan interface{}) {
 }
 
 func data_source_send(d *Data_source, msg []byte) {
-	printEvent("send", msg)
 	var data Data_sourceSend
 	buf := bytes.NewBuffer(msg)
 
@@ -86,6 +88,7 @@ func data_source_send(d *Data_source, msg []byte) {
 	for _,channel := range d.listeners[1] {
 		go func () { channel <- data }()
 	}
+	printEvent("data_source", "send", mime_type, fd)
 }
 
 type Data_sourceCancelled struct {
@@ -96,12 +99,12 @@ func (d *Data_source) AddCancelledListener(channel chan interface{}) {
 }
 
 func data_source_cancelled(d *Data_source, msg []byte) {
-	printEvent("cancelled", msg)
 	var data Data_sourceCancelled
 
 	for _,channel := range d.listeners[2] {
 		go func () { channel <- data }()
 	}
+	printEvent("data_source", "cancelled", )
 }
 
 func NewData_source() (d *Data_source) {

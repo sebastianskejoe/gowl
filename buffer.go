@@ -1,9 +1,10 @@
-
 package gowl
 
 import (
 	"bytes"
 )
+
+var _ bytes.Buffer
 
 type Buffer struct {
 //	*WlObject
@@ -13,10 +14,11 @@ type Buffer struct {
 }
 
 //// Requests
-func (b *Buffer) Destroy ( ) {
-	buf := new(bytes.Buffer)
+func (b *Buffer) Destroy () {
+	msg := newMessage(b, 0)
 
-	sendmsg(b, 0, buf.Bytes())
+	sendmsg(msg)
+	printRequest("buffer", "destroy", )
 }
 
 //// Events
@@ -34,12 +36,12 @@ func (b *Buffer) AddReleaseListener(channel chan interface{}) {
 }
 
 func buffer_release(b *Buffer, msg []byte) {
-	printEvent("release", msg)
 	var data BufferRelease
 
 	for _,channel := range b.listeners[0] {
 		go func () { channel <- data }()
 	}
+	printEvent("buffer", "release", )
 }
 
 func NewBuffer() (b *Buffer) {

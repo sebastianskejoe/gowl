@@ -1,9 +1,10 @@
-
 package gowl
 
 import (
 	"bytes"
 )
+
+var _ bytes.Buffer
 
 type Callback struct {
 //	*WlObject
@@ -29,7 +30,6 @@ func (c *Callback) AddDoneListener(channel chan interface{}) {
 }
 
 func callback_done(c *Callback, msg []byte) {
-	printEvent("done", msg)
 	var data CallbackDone
 	buf := bytes.NewBuffer(msg)
 
@@ -42,6 +42,7 @@ func callback_done(c *Callback, msg []byte) {
 	for _,channel := range c.listeners[0] {
 		go func () { channel <- data }()
 	}
+	printEvent("callback", "done", serial)
 }
 
 func NewCallback() (c *Callback) {

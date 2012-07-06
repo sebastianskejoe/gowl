@@ -1,9 +1,10 @@
-
 package gowl
 
 import (
 	"bytes"
 )
+
+var _ bytes.Buffer
 
 type Pointer struct {
 //	*WlObject
@@ -13,14 +14,15 @@ type Pointer struct {
 }
 
 //// Requests
-func (p *Pointer) Set_cursor (serial uint32, surface *Surface, hotspot_x int32, hotspot_y int32 ) {
-	buf := new(bytes.Buffer)
-	writeInteger(buf, serial)
-	writeInteger(buf, surface.Id())
-	writeInteger(buf, hotspot_x)
-	writeInteger(buf, hotspot_y)
+func (p *Pointer) Set_cursor (serial uint32, surface *Surface, hotspot_x int32, hotspot_y int32) {
+	msg := newMessage(p, 0)
+	writeInteger(msg,serial)
+	writeInteger(msg,surface.Id())
+	writeInteger(msg,hotspot_x)
+	writeInteger(msg,hotspot_y)
 
-	sendmsg(p, 0, buf.Bytes())
+	sendmsg(msg)
+	printRequest("pointer", "set_cursor", serial, surface, hotspot_x, hotspot_y)
 }
 
 //// Events
@@ -42,7 +44,6 @@ func (p *Pointer) AddEnterListener(channel chan interface{}) {
 }
 
 func pointer_enter(p *Pointer, msg []byte) {
-	printEvent("enter", msg)
 	var data PointerEnter
 	buf := bytes.NewBuffer(msg)
 
@@ -57,7 +58,11 @@ func pointer_enter(p *Pointer, msg []byte) {
 		// XXX Error handling
 	}
 	surface := new(Surface)
-	surface = getObject(surfaceid).(*Surface)
+	surfaceobj := getObject(surfaceid)
+	if surfaceobj == nil {
+		return
+	}
+	surface = surfaceobj.(*Surface)
 	data.Surface = surface
 
 	surface_x,err := readInt32(buf)
@@ -75,6 +80,7 @@ func pointer_enter(p *Pointer, msg []byte) {
 	for _,channel := range p.listeners[0] {
 		go func () { channel <- data }()
 	}
+	printEvent("pointer", "enter", serial, surface, surface_x, surface_y)
 }
 
 type PointerLeave struct {
@@ -87,7 +93,6 @@ func (p *Pointer) AddLeaveListener(channel chan interface{}) {
 }
 
 func pointer_leave(p *Pointer, msg []byte) {
-	printEvent("leave", msg)
 	var data PointerLeave
 	buf := bytes.NewBuffer(msg)
 
@@ -102,12 +107,17 @@ func pointer_leave(p *Pointer, msg []byte) {
 		// XXX Error handling
 	}
 	surface := new(Surface)
-	surface = getObject(surfaceid).(*Surface)
+	surfaceobj := getObject(surfaceid)
+	if surfaceobj == nil {
+		return
+	}
+	surface = surfaceobj.(*Surface)
 	data.Surface = surface
 
 	for _,channel := range p.listeners[1] {
 		go func () { channel <- data }()
 	}
+	printEvent("pointer", "leave", serial, surface)
 }
 
 type PointerMotion struct {
@@ -121,7 +131,6 @@ func (p *Pointer) AddMotionListener(channel chan interface{}) {
 }
 
 func pointer_motion(p *Pointer, msg []byte) {
-	printEvent("motion", msg)
 	var data PointerMotion
 	buf := bytes.NewBuffer(msg)
 
@@ -146,6 +155,7 @@ func pointer_motion(p *Pointer, msg []byte) {
 	for _,channel := range p.listeners[2] {
 		go func () { channel <- data }()
 	}
+	printEvent("pointer", "motion", time, surface_x, surface_y)
 }
 
 type PointerButton struct {
@@ -160,7 +170,6 @@ func (p *Pointer) AddButtonListener(channel chan interface{}) {
 }
 
 func pointer_button(p *Pointer, msg []byte) {
-	printEvent("button", msg)
 	var data PointerButton
 	buf := bytes.NewBuffer(msg)
 
@@ -191,6 +200,7 @@ func pointer_button(p *Pointer, msg []byte) {
 	for _,channel := range p.listeners[3] {
 		go func () { channel <- data }()
 	}
+	printEvent("pointer", "button", serial, time, button, state)
 }
 
 type PointerAxis struct {
@@ -204,7 +214,6 @@ func (p *Pointer) AddAxisListener(channel chan interface{}) {
 }
 
 func pointer_axis(p *Pointer, msg []byte) {
-	printEvent("axis", msg)
 	var data PointerAxis
 	buf := bytes.NewBuffer(msg)
 
@@ -229,6 +238,7 @@ func pointer_axis(p *Pointer, msg []byte) {
 	for _,channel := range p.listeners[4] {
 		go func () { channel <- data }()
 	}
+	printEvent("pointer", "axis", time, axis, value)
 }
 
 func NewPointer() (p *Pointer) {

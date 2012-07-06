@@ -1,10 +1,4 @@
-
 package gowl
-
-import (
-	"bytes"
-)
-
 type Shell struct {
 //	*WlObject
 	id int32
@@ -13,13 +7,14 @@ type Shell struct {
 }
 
 //// Requests
-func (s *Shell) Get_shell_surface (id *Shell_surface, surface *Surface ) {
-	buf := new(bytes.Buffer)
+func (s *Shell) Get_shell_surface (id *Shell_surface, surface *Surface) {
+	msg := newMessage(s, 0)
 	appendObject(id)
-	writeInteger(buf, id.Id())
-	writeInteger(buf, surface.Id())
+	writeInteger(msg,id.Id())
+	writeInteger(msg,surface.Id())
 
-	sendmsg(s, 0, buf.Bytes())
+	sendmsg(msg)
+	printRequest("shell", "get_shell_surface", id, surface)
 }
 
 //// Events

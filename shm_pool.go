@@ -1,10 +1,4 @@
-
 package gowl
-
-import (
-	"bytes"
-)
-
 type Shm_pool struct {
 //	*WlObject
 	id int32
@@ -13,30 +7,33 @@ type Shm_pool struct {
 }
 
 //// Requests
-func (s *Shm_pool) Create_buffer (id *Buffer, offset int32, width int32, height int32, stride int32, format uint32 ) {
-	buf := new(bytes.Buffer)
+func (s *Shm_pool) Create_buffer (id *Buffer, offset int32, width int32, height int32, stride int32, format uint32) {
+	msg := newMessage(s, 0)
 	appendObject(id)
-	writeInteger(buf, id.Id())
-	writeInteger(buf, offset)
-	writeInteger(buf, width)
-	writeInteger(buf, height)
-	writeInteger(buf, stride)
-	writeInteger(buf, format)
+	writeInteger(msg,id.Id())
+	writeInteger(msg,offset)
+	writeInteger(msg,width)
+	writeInteger(msg,height)
+	writeInteger(msg,stride)
+	writeInteger(msg,format)
 
-	sendmsg(s, 0, buf.Bytes())
+	sendmsg(msg)
+	printRequest("shm_pool", "create_buffer", id, offset, width, height, stride, format)
 }
 
-func (s *Shm_pool) Destroy ( ) {
-	buf := new(bytes.Buffer)
+func (s *Shm_pool) Destroy () {
+	msg := newMessage(s, 1)
 
-	sendmsg(s, 1, buf.Bytes())
+	sendmsg(msg)
+	printRequest("shm_pool", "destroy", )
 }
 
-func (s *Shm_pool) Resize (size int32 ) {
-	buf := new(bytes.Buffer)
-	writeInteger(buf, size)
+func (s *Shm_pool) Resize (size int32) {
+	msg := newMessage(s, 2)
+	writeInteger(msg,size)
 
-	sendmsg(s, 2, buf.Bytes())
+	sendmsg(msg)
+	printRequest("shm_pool", "resize", size)
 }
 
 //// Events

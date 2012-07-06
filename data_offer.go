@@ -1,9 +1,10 @@
-
 package gowl
 
 import (
 	"bytes"
 )
+
+var _ bytes.Buffer
 
 type Data_offer struct {
 //	*WlObject
@@ -13,26 +14,29 @@ type Data_offer struct {
 }
 
 //// Requests
-func (d *Data_offer) Accept (serial uint32, typ string ) {
-	buf := new(bytes.Buffer)
-	writeInteger(buf, serial)
-	writeString(buf, []byte(typ))
+func (d *Data_offer) Accept (serial uint32, typ string) {
+	msg := newMessage(d, 0)
+	writeInteger(msg,serial)
+	writeString(msg,[]byte(typ))
 
-	sendmsg(d, 0, buf.Bytes())
+	sendmsg(msg)
+	printRequest("data_offer", "accept", serial, typ)
 }
 
-func (d *Data_offer) Receive (mime_type string, fd uintptr ) {
-	buf := new(bytes.Buffer)
-	writeString(buf, []byte(mime_type))
-	writeInteger(buf, fd)
+func (d *Data_offer) Receive (mime_type string, fd uintptr) {
+	msg := newMessage(d, 1)
+	writeString(msg,[]byte(mime_type))
+	writeFd(msg,fd)
 
-	sendmsg(d, 1, buf.Bytes())
+	sendmsg(msg)
+	printRequest("data_offer", "receive", mime_type, fd)
 }
 
-func (d *Data_offer) Destroy ( ) {
-	buf := new(bytes.Buffer)
+func (d *Data_offer) Destroy () {
+	msg := newMessage(d, 2)
 
-	sendmsg(d, 2, buf.Bytes())
+	sendmsg(msg)
+	printRequest("data_offer", "destroy", )
 }
 
 //// Events
@@ -51,7 +55,6 @@ func (d *Data_offer) AddOfferListener(channel chan interface{}) {
 }
 
 func data_offer_offer(d *Data_offer, msg []byte) {
-	printEvent("offer", msg)
 	var data Data_offerOffer
 	buf := bytes.NewBuffer(msg)
 
@@ -64,6 +67,7 @@ func data_offer_offer(d *Data_offer, msg []byte) {
 	for _,channel := range d.listeners[0] {
 		go func () { channel <- data }()
 	}
+	printEvent("data_offer", "offer", typ)
 }
 
 func NewData_offer() (d *Data_offer) {

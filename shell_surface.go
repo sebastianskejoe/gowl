@@ -1,9 +1,10 @@
-
 package gowl
 
 import (
 	"bytes"
 )
+
+var _ bytes.Buffer
 
 type Shell_surface struct {
 //	*WlObject
@@ -13,86 +14,96 @@ type Shell_surface struct {
 }
 
 //// Requests
-func (s *Shell_surface) Pong (serial uint32 ) {
-	buf := new(bytes.Buffer)
-	writeInteger(buf, serial)
+func (s *Shell_surface) Pong (serial uint32) {
+	msg := newMessage(s, 0)
+	writeInteger(msg,serial)
 
-	sendmsg(s, 0, buf.Bytes())
+	sendmsg(msg)
+	printRequest("shell_surface", "pong", serial)
 }
 
-func (s *Shell_surface) Move (seat *Seat, serial uint32 ) {
-	buf := new(bytes.Buffer)
-	writeInteger(buf, seat.Id())
-	writeInteger(buf, serial)
+func (s *Shell_surface) Move (seat *Seat, serial uint32) {
+	msg := newMessage(s, 1)
+	writeInteger(msg,seat.Id())
+	writeInteger(msg,serial)
 
-	sendmsg(s, 1, buf.Bytes())
+	sendmsg(msg)
+	printRequest("shell_surface", "move", seat, serial)
 }
 
-func (s *Shell_surface) Resize (seat *Seat, serial uint32, edges uint32 ) {
-	buf := new(bytes.Buffer)
-	writeInteger(buf, seat.Id())
-	writeInteger(buf, serial)
-	writeInteger(buf, edges)
+func (s *Shell_surface) Resize (seat *Seat, serial uint32, edges uint32) {
+	msg := newMessage(s, 2)
+	writeInteger(msg,seat.Id())
+	writeInteger(msg,serial)
+	writeInteger(msg,edges)
 
-	sendmsg(s, 2, buf.Bytes())
+	sendmsg(msg)
+	printRequest("shell_surface", "resize", seat, serial, edges)
 }
 
-func (s *Shell_surface) Set_toplevel ( ) {
-	buf := new(bytes.Buffer)
+func (s *Shell_surface) Set_toplevel () {
+	msg := newMessage(s, 3)
 
-	sendmsg(s, 3, buf.Bytes())
+	sendmsg(msg)
+	printRequest("shell_surface", "set_toplevel", )
 }
 
-func (s *Shell_surface) Set_transient (parent *Surface, x int32, y int32, flags uint32 ) {
-	buf := new(bytes.Buffer)
-	writeInteger(buf, parent.Id())
-	writeInteger(buf, x)
-	writeInteger(buf, y)
-	writeInteger(buf, flags)
+func (s *Shell_surface) Set_transient (parent *Surface, x int32, y int32, flags uint32) {
+	msg := newMessage(s, 4)
+	writeInteger(msg,parent.Id())
+	writeInteger(msg,x)
+	writeInteger(msg,y)
+	writeInteger(msg,flags)
 
-	sendmsg(s, 4, buf.Bytes())
+	sendmsg(msg)
+	printRequest("shell_surface", "set_transient", parent, x, y, flags)
 }
 
-func (s *Shell_surface) Set_fullscreen (method uint32, framerate uint32, output *Output ) {
-	buf := new(bytes.Buffer)
-	writeInteger(buf, method)
-	writeInteger(buf, framerate)
-	writeInteger(buf, output.Id())
+func (s *Shell_surface) Set_fullscreen (method uint32, framerate uint32, output *Output) {
+	msg := newMessage(s, 5)
+	writeInteger(msg,method)
+	writeInteger(msg,framerate)
+	writeInteger(msg,output.Id())
 
-	sendmsg(s, 5, buf.Bytes())
+	sendmsg(msg)
+	printRequest("shell_surface", "set_fullscreen", method, framerate, output)
 }
 
-func (s *Shell_surface) Set_popup (seat *Seat, serial uint32, parent *Surface, x int32, y int32, flags uint32 ) {
-	buf := new(bytes.Buffer)
-	writeInteger(buf, seat.Id())
-	writeInteger(buf, serial)
-	writeInteger(buf, parent.Id())
-	writeInteger(buf, x)
-	writeInteger(buf, y)
-	writeInteger(buf, flags)
+func (s *Shell_surface) Set_popup (seat *Seat, serial uint32, parent *Surface, x int32, y int32, flags uint32) {
+	msg := newMessage(s, 6)
+	writeInteger(msg,seat.Id())
+	writeInteger(msg,serial)
+	writeInteger(msg,parent.Id())
+	writeInteger(msg,x)
+	writeInteger(msg,y)
+	writeInteger(msg,flags)
 
-	sendmsg(s, 6, buf.Bytes())
+	sendmsg(msg)
+	printRequest("shell_surface", "set_popup", seat, serial, parent, x, y, flags)
 }
 
-func (s *Shell_surface) Set_maximized (output *Output ) {
-	buf := new(bytes.Buffer)
-	writeInteger(buf, output.Id())
+func (s *Shell_surface) Set_maximized (output *Output) {
+	msg := newMessage(s, 7)
+	writeInteger(msg,output.Id())
 
-	sendmsg(s, 7, buf.Bytes())
+	sendmsg(msg)
+	printRequest("shell_surface", "set_maximized", output)
 }
 
-func (s *Shell_surface) Set_title (title string ) {
-	buf := new(bytes.Buffer)
-	writeString(buf, []byte(title))
+func (s *Shell_surface) Set_title (title string) {
+	msg := newMessage(s, 8)
+	writeString(msg,[]byte(title))
 
-	sendmsg(s, 8, buf.Bytes())
+	sendmsg(msg)
+	printRequest("shell_surface", "set_title", title)
 }
 
-func (s *Shell_surface) Set_class (class_ string ) {
-	buf := new(bytes.Buffer)
-	writeString(buf, []byte(class_))
+func (s *Shell_surface) Set_class (class_ string) {
+	msg := newMessage(s, 9)
+	writeString(msg,[]byte(class_))
 
-	sendmsg(s, 9, buf.Bytes())
+	sendmsg(msg)
+	printRequest("shell_surface", "set_class", class_)
 }
 
 //// Events
@@ -111,7 +122,6 @@ func (s *Shell_surface) AddPingListener(channel chan interface{}) {
 }
 
 func shell_surface_ping(s *Shell_surface, msg []byte) {
-	printEvent("ping", msg)
 	var data Shell_surfacePing
 	buf := bytes.NewBuffer(msg)
 
@@ -124,6 +134,7 @@ func shell_surface_ping(s *Shell_surface, msg []byte) {
 	for _,channel := range s.listeners[0] {
 		go func () { channel <- data }()
 	}
+	printEvent("shell_surface", "ping", serial)
 }
 
 type Shell_surfaceConfigure struct {
@@ -137,7 +148,6 @@ func (s *Shell_surface) AddConfigureListener(channel chan interface{}) {
 }
 
 func shell_surface_configure(s *Shell_surface, msg []byte) {
-	printEvent("configure", msg)
 	var data Shell_surfaceConfigure
 	buf := bytes.NewBuffer(msg)
 
@@ -162,6 +172,7 @@ func shell_surface_configure(s *Shell_surface, msg []byte) {
 	for _,channel := range s.listeners[1] {
 		go func () { channel <- data }()
 	}
+	printEvent("shell_surface", "configure", edges, width, height)
 }
 
 type Shell_surfacePopup_done struct {
@@ -172,12 +183,12 @@ func (s *Shell_surface) AddPopup_doneListener(channel chan interface{}) {
 }
 
 func shell_surface_popup_done(s *Shell_surface, msg []byte) {
-	printEvent("popup_done", msg)
 	var data Shell_surfacePopup_done
 
 	for _,channel := range s.listeners[2] {
 		go func () { channel <- data }()
 	}
+	printEvent("shell_surface", "popup_done", )
 }
 
 func NewShell_surface() (s *Shell_surface) {

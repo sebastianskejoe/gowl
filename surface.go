@@ -1,9 +1,10 @@
-
 package gowl
 
 import (
 	"bytes"
 )
+
+var _ bytes.Buffer
 
 type Surface struct {
 //	*WlObject
@@ -13,51 +14,57 @@ type Surface struct {
 }
 
 //// Requests
-func (s *Surface) Destroy ( ) {
-	buf := new(bytes.Buffer)
+func (s *Surface) Destroy () {
+	msg := newMessage(s, 0)
 
-	sendmsg(s, 0, buf.Bytes())
+	sendmsg(msg)
+	printRequest("surface", "destroy", )
 }
 
-func (s *Surface) Attach (buffer *Buffer, x int32, y int32 ) {
-	buf := new(bytes.Buffer)
-	writeInteger(buf, buffer.Id())
-	writeInteger(buf, x)
-	writeInteger(buf, y)
+func (s *Surface) Attach (buffer *Buffer, x int32, y int32) {
+	msg := newMessage(s, 1)
+	writeInteger(msg,buffer.Id())
+	writeInteger(msg,x)
+	writeInteger(msg,y)
 
-	sendmsg(s, 1, buf.Bytes())
+	sendmsg(msg)
+	printRequest("surface", "attach", buffer, x, y)
 }
 
-func (s *Surface) Damage (x int32, y int32, width int32, height int32 ) {
-	buf := new(bytes.Buffer)
-	writeInteger(buf, x)
-	writeInteger(buf, y)
-	writeInteger(buf, width)
-	writeInteger(buf, height)
+func (s *Surface) Damage (x int32, y int32, width int32, height int32) {
+	msg := newMessage(s, 2)
+	writeInteger(msg,x)
+	writeInteger(msg,y)
+	writeInteger(msg,width)
+	writeInteger(msg,height)
 
-	sendmsg(s, 2, buf.Bytes())
+	sendmsg(msg)
+	printRequest("surface", "damage", x, y, width, height)
 }
 
-func (s *Surface) Frame (callback *Callback ) {
-	buf := new(bytes.Buffer)
+func (s *Surface) Frame (callback *Callback) {
+	msg := newMessage(s, 3)
 	appendObject(callback)
-	writeInteger(buf, callback.Id())
+	writeInteger(msg,callback.Id())
 
-	sendmsg(s, 3, buf.Bytes())
+	sendmsg(msg)
+	printRequest("surface", "frame", callback)
 }
 
-func (s *Surface) Set_opaque_region (region *Region ) {
-	buf := new(bytes.Buffer)
-	writeInteger(buf, region.Id())
+func (s *Surface) Set_opaque_region (region *Region) {
+	msg := newMessage(s, 4)
+	writeInteger(msg,region.Id())
 
-	sendmsg(s, 4, buf.Bytes())
+	sendmsg(msg)
+	printRequest("surface", "set_opaque_region", region)
 }
 
-func (s *Surface) Set_input_region (region *Region ) {
-	buf := new(bytes.Buffer)
-	writeInteger(buf, region.Id())
+func (s *Surface) Set_input_region (region *Region) {
+	msg := newMessage(s, 5)
+	writeInteger(msg,region.Id())
 
-	sendmsg(s, 5, buf.Bytes())
+	sendmsg(msg)
+	printRequest("surface", "set_input_region", region)
 }
 
 //// Events
@@ -76,7 +83,6 @@ func (s *Surface) AddEnterListener(channel chan interface{}) {
 }
 
 func surface_enter(s *Surface, msg []byte) {
-	printEvent("enter", msg)
 	var data SurfaceEnter
 	buf := bytes.NewBuffer(msg)
 
@@ -85,12 +91,17 @@ func surface_enter(s *Surface, msg []byte) {
 		// XXX Error handling
 	}
 	output := new(Output)
-	output = getObject(outputid).(*Output)
+	outputobj := getObject(outputid)
+	if outputobj == nil {
+		return
+	}
+	output = outputobj.(*Output)
 	data.Output = output
 
 	for _,channel := range s.listeners[0] {
 		go func () { channel <- data }()
 	}
+	printEvent("surface", "enter", output)
 }
 
 type SurfaceLeave struct {
@@ -102,7 +113,6 @@ func (s *Surface) AddLeaveListener(channel chan interface{}) {
 }
 
 func surface_leave(s *Surface, msg []byte) {
-	printEvent("leave", msg)
 	var data SurfaceLeave
 	buf := bytes.NewBuffer(msg)
 
@@ -111,12 +121,17 @@ func surface_leave(s *Surface, msg []byte) {
 		// XXX Error handling
 	}
 	output := new(Output)
-	output = getObject(outputid).(*Output)
+	outputobj := getObject(outputid)
+	if outputobj == nil {
+		return
+	}
+	output = outputobj.(*Output)
 	data.Output = output
 
 	for _,channel := range s.listeners[1] {
 		go func () { channel <- data }()
 	}
+	printEvent("surface", "leave", output)
 }
 
 func NewSurface() (s *Surface) {

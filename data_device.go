@@ -1,9 +1,10 @@
-
 package gowl
 
 import (
 	"bytes"
 )
+
+var _ bytes.Buffer
 
 type Data_device struct {
 //	*WlObject
@@ -13,22 +14,24 @@ type Data_device struct {
 }
 
 //// Requests
-func (d *Data_device) Start_drag (source *Data_source, origin *Surface, icon *Surface, serial uint32 ) {
-	buf := new(bytes.Buffer)
-	writeInteger(buf, source.Id())
-	writeInteger(buf, origin.Id())
-	writeInteger(buf, icon.Id())
-	writeInteger(buf, serial)
+func (d *Data_device) Start_drag (source *Data_source, origin *Surface, icon *Surface, serial uint32) {
+	msg := newMessage(d, 0)
+	writeInteger(msg,source.Id())
+	writeInteger(msg,origin.Id())
+	writeInteger(msg,icon.Id())
+	writeInteger(msg,serial)
 
-	sendmsg(d, 0, buf.Bytes())
+	sendmsg(msg)
+	printRequest("data_device", "start_drag", source, origin, icon, serial)
 }
 
-func (d *Data_device) Set_selection (source *Data_source, serial uint32 ) {
-	buf := new(bytes.Buffer)
-	writeInteger(buf, source.Id())
-	writeInteger(buf, serial)
+func (d *Data_device) Set_selection (source *Data_source, serial uint32) {
+	msg := newMessage(d, 1)
+	writeInteger(msg,source.Id())
+	writeInteger(msg,serial)
 
-	sendmsg(d, 1, buf.Bytes())
+	sendmsg(msg)
+	printRequest("data_device", "set_selection", source, serial)
 }
 
 //// Events
@@ -47,7 +50,6 @@ func (d *Data_device) AddData_offerListener(channel chan interface{}) {
 }
 
 func data_device_data_offer(d *Data_device, msg []byte) {
-	printEvent("data_offer", msg)
 	var data Data_deviceData_offer
 	buf := bytes.NewBuffer(msg)
 
@@ -62,6 +64,7 @@ func data_device_data_offer(d *Data_device, msg []byte) {
 	for _,channel := range d.listeners[0] {
 		go func () { channel <- data }()
 	}
+	printEvent("data_device", "data_offer", id)
 }
 
 type Data_deviceEnter struct {
@@ -77,7 +80,6 @@ func (d *Data_device) AddEnterListener(channel chan interface{}) {
 }
 
 func data_device_enter(d *Data_device, msg []byte) {
-	printEvent("enter", msg)
 	var data Data_deviceEnter
 	buf := bytes.NewBuffer(msg)
 
@@ -92,7 +94,11 @@ func data_device_enter(d *Data_device, msg []byte) {
 		// XXX Error handling
 	}
 	surface := new(Surface)
-	surface = getObject(surfaceid).(*Surface)
+	surfaceobj := getObject(surfaceid)
+	if surfaceobj == nil {
+		return
+	}
+	surface = surfaceobj.(*Surface)
 	data.Surface = surface
 
 	x,err := readInt32(buf)
@@ -112,12 +118,17 @@ func data_device_enter(d *Data_device, msg []byte) {
 		// XXX Error handling
 	}
 	id := new(Data_offer)
-	id = getObject(idid).(*Data_offer)
+	idobj := getObject(idid)
+	if idobj == nil {
+		return
+	}
+	id = idobj.(*Data_offer)
 	data.Id = id
 
 	for _,channel := range d.listeners[1] {
 		go func () { channel <- data }()
 	}
+	printEvent("data_device", "enter", serial, surface, x, y, id)
 }
 
 type Data_deviceLeave struct {
@@ -128,12 +139,12 @@ func (d *Data_device) AddLeaveListener(channel chan interface{}) {
 }
 
 func data_device_leave(d *Data_device, msg []byte) {
-	printEvent("leave", msg)
 	var data Data_deviceLeave
 
 	for _,channel := range d.listeners[2] {
 		go func () { channel <- data }()
 	}
+	printEvent("data_device", "leave", )
 }
 
 type Data_deviceMotion struct {
@@ -147,7 +158,6 @@ func (d *Data_device) AddMotionListener(channel chan interface{}) {
 }
 
 func data_device_motion(d *Data_device, msg []byte) {
-	printEvent("motion", msg)
 	var data Data_deviceMotion
 	buf := bytes.NewBuffer(msg)
 
@@ -172,6 +182,7 @@ func data_device_motion(d *Data_device, msg []byte) {
 	for _,channel := range d.listeners[3] {
 		go func () { channel <- data }()
 	}
+	printEvent("data_device", "motion", time, x, y)
 }
 
 type Data_deviceDrop struct {
@@ -182,12 +193,12 @@ func (d *Data_device) AddDropListener(channel chan interface{}) {
 }
 
 func data_device_drop(d *Data_device, msg []byte) {
-	printEvent("drop", msg)
 	var data Data_deviceDrop
 
 	for _,channel := range d.listeners[4] {
 		go func () { channel <- data }()
 	}
+	printEvent("data_device", "drop", )
 }
 
 type Data_deviceSelection struct {
@@ -199,7 +210,6 @@ func (d *Data_device) AddSelectionListener(channel chan interface{}) {
 }
 
 func data_device_selection(d *Data_device, msg []byte) {
-	printEvent("selection", msg)
 	var data Data_deviceSelection
 	buf := bytes.NewBuffer(msg)
 
@@ -208,12 +218,17 @@ func data_device_selection(d *Data_device, msg []byte) {
 		// XXX Error handling
 	}
 	id := new(Data_offer)
-	id = getObject(idid).(*Data_offer)
+	idobj := getObject(idid)
+	if idobj == nil {
+		return
+	}
+	id = idobj.(*Data_offer)
 	data.Id = id
 
 	for _,channel := range d.listeners[5] {
 		go func () { channel <- data }()
 	}
+	printEvent("data_device", "selection", id)
 }
 
 func NewData_device() (d *Data_device) {

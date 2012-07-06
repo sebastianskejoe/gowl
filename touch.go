@@ -1,9 +1,10 @@
-
 package gowl
 
 import (
 	"bytes"
 )
+
+var _ bytes.Buffer
 
 type Touch struct {
 //	*WlObject
@@ -34,7 +35,6 @@ func (t *Touch) AddDownListener(channel chan interface{}) {
 }
 
 func touch_down(t *Touch, msg []byte) {
-	printEvent("down", msg)
 	var data TouchDown
 	buf := bytes.NewBuffer(msg)
 
@@ -55,7 +55,11 @@ func touch_down(t *Touch, msg []byte) {
 		// XXX Error handling
 	}
 	surface := new(Surface)
-	surface = getObject(surfaceid).(*Surface)
+	surfaceobj := getObject(surfaceid)
+	if surfaceobj == nil {
+		return
+	}
+	surface = surfaceobj.(*Surface)
 	data.Surface = surface
 
 	id,err := readInt32(buf)
@@ -79,6 +83,7 @@ func touch_down(t *Touch, msg []byte) {
 	for _,channel := range t.listeners[0] {
 		go func () { channel <- data }()
 	}
+	printEvent("touch", "down", serial, time, surface, id, x, y)
 }
 
 type TouchUp struct {
@@ -92,7 +97,6 @@ func (t *Touch) AddUpListener(channel chan interface{}) {
 }
 
 func touch_up(t *Touch, msg []byte) {
-	printEvent("up", msg)
 	var data TouchUp
 	buf := bytes.NewBuffer(msg)
 
@@ -117,6 +121,7 @@ func touch_up(t *Touch, msg []byte) {
 	for _,channel := range t.listeners[1] {
 		go func () { channel <- data }()
 	}
+	printEvent("touch", "up", serial, time, id)
 }
 
 type TouchMotion struct {
@@ -131,7 +136,6 @@ func (t *Touch) AddMotionListener(channel chan interface{}) {
 }
 
 func touch_motion(t *Touch, msg []byte) {
-	printEvent("motion", msg)
 	var data TouchMotion
 	buf := bytes.NewBuffer(msg)
 
@@ -162,6 +166,7 @@ func touch_motion(t *Touch, msg []byte) {
 	for _,channel := range t.listeners[2] {
 		go func () { channel <- data }()
 	}
+	printEvent("touch", "motion", time, id, x, y)
 }
 
 type TouchFrame struct {
@@ -172,12 +177,12 @@ func (t *Touch) AddFrameListener(channel chan interface{}) {
 }
 
 func touch_frame(t *Touch, msg []byte) {
-	printEvent("frame", msg)
 	var data TouchFrame
 
 	for _,channel := range t.listeners[3] {
 		go func () { channel <- data }()
 	}
+	printEvent("touch", "frame", )
 }
 
 type TouchCancel struct {
@@ -188,12 +193,12 @@ func (t *Touch) AddCancelListener(channel chan interface{}) {
 }
 
 func touch_cancel(t *Touch, msg []byte) {
-	printEvent("cancel", msg)
 	var data TouchCancel
 
 	for _,channel := range t.listeners[4] {
 		go func () { channel <- data }()
 	}
+	printEvent("touch", "cancel", )
 }
 
 func NewTouch() (t *Touch) {

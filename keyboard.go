@@ -1,9 +1,10 @@
-
 package gowl
 
 import (
 	"bytes"
 )
+
+var _ bytes.Buffer
 
 type Keyboard struct {
 //	*WlObject
@@ -31,7 +32,6 @@ func (k *Keyboard) AddKeymapListener(channel chan interface{}) {
 }
 
 func keyboard_keymap(k *Keyboard, msg []byte) {
-	printEvent("keymap", msg)
 	var data KeyboardKeymap
 	buf := bytes.NewBuffer(msg)
 
@@ -56,6 +56,7 @@ func keyboard_keymap(k *Keyboard, msg []byte) {
 	for _,channel := range k.listeners[0] {
 		go func () { channel <- data }()
 	}
+	printEvent("keyboard", "keymap", format, fd, size)
 }
 
 type KeyboardEnter struct {
@@ -69,7 +70,6 @@ func (k *Keyboard) AddEnterListener(channel chan interface{}) {
 }
 
 func keyboard_enter(k *Keyboard, msg []byte) {
-	printEvent("enter", msg)
 	var data KeyboardEnter
 	buf := bytes.NewBuffer(msg)
 
@@ -84,7 +84,11 @@ func keyboard_enter(k *Keyboard, msg []byte) {
 		// XXX Error handling
 	}
 	surface := new(Surface)
-	surface = getObject(surfaceid).(*Surface)
+	surfaceobj := getObject(surfaceid)
+	if surfaceobj == nil {
+		return
+	}
+	surface = surfaceobj.(*Surface)
 	data.Surface = surface
 
 	keys,err := readArray(buf)
@@ -96,6 +100,7 @@ func keyboard_enter(k *Keyboard, msg []byte) {
 	for _,channel := range k.listeners[1] {
 		go func () { channel <- data }()
 	}
+	printEvent("keyboard", "enter", serial, surface, keys)
 }
 
 type KeyboardLeave struct {
@@ -108,7 +113,6 @@ func (k *Keyboard) AddLeaveListener(channel chan interface{}) {
 }
 
 func keyboard_leave(k *Keyboard, msg []byte) {
-	printEvent("leave", msg)
 	var data KeyboardLeave
 	buf := bytes.NewBuffer(msg)
 
@@ -123,12 +127,17 @@ func keyboard_leave(k *Keyboard, msg []byte) {
 		// XXX Error handling
 	}
 	surface := new(Surface)
-	surface = getObject(surfaceid).(*Surface)
+	surfaceobj := getObject(surfaceid)
+	if surfaceobj == nil {
+		return
+	}
+	surface = surfaceobj.(*Surface)
 	data.Surface = surface
 
 	for _,channel := range k.listeners[2] {
 		go func () { channel <- data }()
 	}
+	printEvent("keyboard", "leave", serial, surface)
 }
 
 type KeyboardKey struct {
@@ -143,7 +152,6 @@ func (k *Keyboard) AddKeyListener(channel chan interface{}) {
 }
 
 func keyboard_key(k *Keyboard, msg []byte) {
-	printEvent("key", msg)
 	var data KeyboardKey
 	buf := bytes.NewBuffer(msg)
 
@@ -174,6 +182,7 @@ func keyboard_key(k *Keyboard, msg []byte) {
 	for _,channel := range k.listeners[3] {
 		go func () { channel <- data }()
 	}
+	printEvent("keyboard", "key", serial, time, key, state)
 }
 
 type KeyboardModifiers struct {
@@ -189,7 +198,6 @@ func (k *Keyboard) AddModifiersListener(channel chan interface{}) {
 }
 
 func keyboard_modifiers(k *Keyboard, msg []byte) {
-	printEvent("modifiers", msg)
 	var data KeyboardModifiers
 	buf := bytes.NewBuffer(msg)
 
@@ -226,6 +234,7 @@ func keyboard_modifiers(k *Keyboard, msg []byte) {
 	for _,channel := range k.listeners[4] {
 		go func () { channel <- data }()
 	}
+	printEvent("keyboard", "modifiers", serial, mods_depressed, mods_latched, mods_locked, group)
 }
 
 func NewKeyboard() (k *Keyboard) {

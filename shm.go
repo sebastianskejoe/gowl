@@ -1,9 +1,10 @@
-
 package gowl
 
 import (
 	"bytes"
 )
+
+var _ bytes.Buffer
 
 type Shm struct {
 //	*WlObject
@@ -13,14 +14,15 @@ type Shm struct {
 }
 
 //// Requests
-func (s *Shm) Create_pool (id *Shm_pool, fd uintptr, size int32 ) {
-	buf := new(bytes.Buffer)
+func (s *Shm) Create_pool (id *Shm_pool, fd uintptr, size int32) {
+	msg := newMessage(s, 0)
 	appendObject(id)
-	writeInteger(buf, id.Id())
-	writeInteger(buf, fd)
-	writeInteger(buf, size)
+	writeInteger(msg,id.Id())
+	writeFd(msg,fd)
+	writeInteger(msg,size)
 
-	sendmsg(s, 0, buf.Bytes())
+	sendmsg(msg)
+	printRequest("shm", "create_pool", id, fd, size)
 }
 
 //// Events
@@ -39,7 +41,6 @@ func (s *Shm) AddFormatListener(channel chan interface{}) {
 }
 
 func shm_format(s *Shm, msg []byte) {
-	printEvent("format", msg)
 	var data ShmFormat
 	buf := bytes.NewBuffer(msg)
 
@@ -52,6 +53,7 @@ func shm_format(s *Shm, msg []byte) {
 	for _,channel := range s.listeners[0] {
 		go func () { channel <- data }()
 	}
+	printEvent("shm", "format", format)
 }
 
 func NewShm() (s *Shm) {

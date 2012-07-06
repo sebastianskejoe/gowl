@@ -1,9 +1,10 @@
-
 package gowl
 
 import (
 	"bytes"
 )
+
+var _ bytes.Buffer
 
 type Display struct {
 //	*WlObject
@@ -13,23 +14,25 @@ type Display struct {
 }
 
 //// Requests
-func (d *Display) Bind (name uint32, iface string, version uint32, id Object ) {
-	buf := new(bytes.Buffer)
-	writeInteger(buf, name)
-	writeString(buf, []byte(iface))
-	writeInteger(buf, version)
+func (d *Display) Bind (name uint32, iface string, version uint32, id Object) {
+	msg := newMessage(d, 0)
+	writeInteger(msg,name)
+	writeString(msg,[]byte(iface))
+	writeInteger(msg,version)
 	appendObject(id)
-	writeInteger(buf, id.Id())
+	writeInteger(msg,id.Id())
 
-	sendmsg(d, 0, buf.Bytes())
+	sendmsg(msg)
+	printRequest("display", "bind", name, iface, version, id)
 }
 
-func (d *Display) Sync (callback *Callback ) {
-	buf := new(bytes.Buffer)
+func (d *Display) Sync (callback *Callback) {
+	msg := newMessage(d, 1)
 	appendObject(callback)
-	writeInteger(buf, callback.Id())
+	writeInteger(msg,callback.Id())
 
-	sendmsg(d, 1, buf.Bytes())
+	sendmsg(msg)
+	printRequest("display", "sync", callback)
 }
 
 //// Events
@@ -50,7 +53,6 @@ func (d *Display) AddErrorListener(channel chan interface{}) {
 }
 
 func display_error(d *Display, msg []byte) {
-	printEvent("error", msg)
 	var data DisplayError
 	buf := bytes.NewBuffer(msg)
 
@@ -59,7 +61,11 @@ func display_error(d *Display, msg []byte) {
 		// XXX Error handling
 	}
 	object_id := new(Object)
-	object_id = getObject(object_idid).(Object)
+	object_idobj := getObject(object_idid)
+	if object_idobj == nil {
+		return
+	}
+	object_id = object_idobj.(Object)
 	data.Object_id = object_id
 
 	code,err := readUint32(buf)
@@ -77,6 +83,7 @@ func display_error(d *Display, msg []byte) {
 	for _,channel := range d.listeners[0] {
 		go func () { channel <- data }()
 	}
+	printEvent("display", "error", object_id, code, message)
 }
 
 type DisplayGlobal struct {
@@ -90,7 +97,6 @@ func (d *Display) AddGlobalListener(channel chan interface{}) {
 }
 
 func display_global(d *Display, msg []byte) {
-	printEvent("global", msg)
 	var data DisplayGlobal
 	buf := bytes.NewBuffer(msg)
 
@@ -115,6 +121,7 @@ func display_global(d *Display, msg []byte) {
 	for _,channel := range d.listeners[1] {
 		go func () { channel <- data }()
 	}
+	printEvent("display", "global", name, iface, version)
 }
 
 type DisplayGlobal_remove struct {
@@ -126,7 +133,6 @@ func (d *Display) AddGlobal_removeListener(channel chan interface{}) {
 }
 
 func display_global_remove(d *Display, msg []byte) {
-	printEvent("global_remove", msg)
 	var data DisplayGlobal_remove
 	buf := bytes.NewBuffer(msg)
 
@@ -139,6 +145,7 @@ func display_global_remove(d *Display, msg []byte) {
 	for _,channel := range d.listeners[2] {
 		go func () { channel <- data }()
 	}
+	printEvent("display", "global_remove", name)
 }
 
 type DisplayDelete_id struct {
@@ -150,7 +157,6 @@ func (d *Display) AddDelete_idListener(channel chan interface{}) {
 }
 
 func display_delete_id(d *Display, msg []byte) {
-	printEvent("delete_id", msg)
 	var data DisplayDelete_id
 	buf := bytes.NewBuffer(msg)
 
@@ -163,6 +169,7 @@ func display_delete_id(d *Display, msg []byte) {
 	for _,channel := range d.listeners[3] {
 		go func () { channel <- data }()
 	}
+	printEvent("display", "delete_id", id)
 }
 
 func NewDisplay() (d *Display) {

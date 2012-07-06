@@ -1,9 +1,10 @@
-
 package gowl
 
 import (
 	"bytes"
 )
+
+var _ bytes.Buffer
 
 type Output struct {
 //	*WlObject
@@ -35,7 +36,6 @@ func (o *Output) AddGeometryListener(channel chan interface{}) {
 }
 
 func output_geometry(o *Output, msg []byte) {
-	printEvent("geometry", msg)
 	var data OutputGeometry
 	buf := bytes.NewBuffer(msg)
 
@@ -84,6 +84,7 @@ func output_geometry(o *Output, msg []byte) {
 	for _,channel := range o.listeners[0] {
 		go func () { channel <- data }()
 	}
+	printEvent("output", "geometry", x, y, physical_width, physical_height, subpixel, make, model)
 }
 
 type OutputMode struct {
@@ -98,7 +99,6 @@ func (o *Output) AddModeListener(channel chan interface{}) {
 }
 
 func output_mode(o *Output, msg []byte) {
-	printEvent("mode", msg)
 	var data OutputMode
 	buf := bytes.NewBuffer(msg)
 
@@ -129,6 +129,7 @@ func output_mode(o *Output, msg []byte) {
 	for _,channel := range o.listeners[1] {
 		go func () { channel <- data }()
 	}
+	printEvent("output", "mode", flags, width, height, refresh)
 }
 
 func NewOutput() (o *Output) {
