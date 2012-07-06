@@ -25,7 +25,6 @@ func appendObject(obj Object) int32 {
 	if id == -1 {
 		id = int32(len(objects))
 	}
-	fmt.Println("id is", id)
 	objects[id] = obj
 	obj.SetId(id)
 	return id
@@ -40,25 +39,23 @@ func getObject(id int32) Object {
 }
 
 func removeObject(id int32) {
-	fmt.Println("Removing",id)
 	objects[id] = nil
-//	delete(objects, id)
 }
 
 func PrintObject(id int32) {
-	fmt.Printf("%d\n", objects[id].Id())
+	fmt.Printf("Object id is %d\n", objects[id].Id())
 }
 
 func printError(f string, err error) {
 	fmt.Println(f,"produced an error:",err)
 }
 
-func printEvent(name string, args ...interface{}) {
-	fmt.Println(name,"{",args,"}")
+func printEvent(name string, event string, args ...interface{}) {
+	fmt.Printf("%s.%s { %v }\n",name,event,args)
 }
 
-func printRequest(name string, args ...interface{}) {
-	fmt.Println("->",name,"{",args,"}")
+func printRequest(name string, req string, args ...interface{}) {
+	fmt.Printf(" -> %s.%s { %v }\n",name,req,args)
 }
 
 func delete_id_listener(c chan interface{}) {
@@ -71,6 +68,6 @@ func delete_id_listener(c chan interface{}) {
 func error_listener(c chan interface{}) {
 	for e := range c {
 		ev := e.(DisplayError)
-		fmt.Println("Error:", ev.Object_id, ev.Code, ev.Message)
+		fmt.Println("Error:", ev.Object_id.Id(), ev.Code, ev.Message)
 	}
 }
