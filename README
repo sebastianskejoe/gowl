@@ -4,19 +4,16 @@ This library is ONLY for communicating with the wayland protocol. If you want to
 actually create windows and similar, you'll need to write the code to do that
 yourself.
 
-Before building display.patch needs to be applied:
+Before building you need to run the generator:
+
+	cd generator/
+	go run generate.go
+
+generate.go places the generated files in the directory above the current.
+After generating, display.patch needs to be applied:
 
 	patch -p 1 < display.patch
 
 To run the test application, start weston and run:
 
 	go run test/main.go
-
-For now generated files are included in the git repository. If you would like to
-generate the files yourself, run the following commands from the root of the
-fetched repository:
-
-	cd generator/
-	go run generate.go
-
-generate.go places the generated files in the directory above the current.
