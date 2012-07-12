@@ -5,7 +5,6 @@ import (
 	"time"
 	"fmt"
 	"strings"
-//	"os"
 	"syscall"
 )
 
@@ -32,20 +31,6 @@ var (
 	add int8
 )
 
-func (d *Display) globalListener(c chan interface{}) {
-	for e := range c {
-		glob := e.(gowl.DisplayGlobal)
-		switch strings.TrimSpace(glob.Iface) {
-		case "wl_shell":
-			d.display.Bind(glob.Name, glob.Iface, glob.Version, d.shell)
-		case "wl_shm":
-			d.display.Bind(glob.Name, glob.Iface, glob.Version, d.shm)
-		case "wl_compositor":
-			d.display.Bind(glob.Name, glob.Iface, glob.Version, d.compositor)
-		}
-	}
-}
-
 func main() {
 	display := new(Display)
 	display.display = gowl.NewDisplay()
@@ -64,7 +49,7 @@ func main() {
 	display.display.Iterate()
 
 	// Sync
-	WaitForSync(display.display)
+	waitForSync(display.display)
 
 	// create pool
 	fd := create_tmp()
@@ -88,11 +73,36 @@ func main() {
 
 	redraw(display)
 
-	<-time.After(2e9)
 	display.buffer.Destroy()
 	display.surface.Destroy()
 }
 
+
+//// Event listeners
+func Pong(ss *gowl.Shell_surface) {
+	c := make(chan interface{})
+	ss.AddPingListener(c)
+	for p := range c {
+		ping := p.(gowl.Shell_surfacePing)
+		ss.Pong(ping.Serial)
+	}
+}
+
+func (d *Display) globalListener(c chan interface{}) {
+	for e := range c {
+		glob := e.(gowl.DisplayGlobal)
+		switch strings.TrimSpace(glob.Iface) {
+		case "wl_shell":
+			d.display.Bind(glob.Name, glob.Iface, glob.Version, d.shell)
+		case "wl_shm":
+			d.display.Bind(glob.Name, glob.Iface, glob.Version, d.shm)
+		case "wl_compositor":
+			d.display.Bind(glob.Name, glob.Iface, glob.Version, d.compositor)
+		}
+	}
+}
+
+//// Helper
 func redraw(display *Display) {
 	col = uint8(int8(col)+add)
 	if col == 255 {
@@ -122,7 +132,7 @@ func redraw(display *Display) {
 	} ()
 }
 
-func WaitForSync(display *gowl.Display) {
+func waitForSync(display *gowl.Display) {
 	cb := gowl.NewCallback()
 	done := make(chan interface{})
 	cb.AddDoneListener(done)
@@ -140,35 +150,9 @@ func WaitForSync(display *gowl.Display) {
 }
 
 func create_tmp() (uintptr) {
-/*	_,_ = os.Create("bar")
-//	file,err := os.Create("foo")//, os.O_EXCL|os.O_CREATE, 0777)
-	file,err := os.OpenFile("/home/sebastian/.weston-tmp/foo", os.O_EXCL|os.O_CREATE|os.O_RDWR|syscall.O_CLOEXEC, 0600)
-	os.Remove("/home/sebastian/.weston-tmp/foo")
-	if err != nil {
-		fmt.Println(err)
-		return 0
-	}
-	err = file.Truncate(250000)
-	if err != nil {
-		fmt.Println(err, file.Fd())
-		return 0
-	}
-	fd,_,_ := syscall.Syscall(syscall.SYS_FCNTL, file.Fd(), syscall.F_DUPFD_CLOEXEC, 0)
-	file.Close()
-
-	return fd*/
 	name := C.CString("/home/sebastian/.weston-tmp/gowl-XXXXXX")
 	fd := uintptr(C.mkostemp(name, syscall.O_CLOEXEC))
 	syscall.Ftruncate(int(fd), 250000)
 	syscall.Unlink(C.GoString(name))
 	return fd
-}
-
-func Pong(ss *gowl.Shell_surface) {
-	c := make(chan interface{})
-	ss.AddPingListener(c)
-	for p := range c {
-		ping := p.(gowl.Shell_surfacePing)
-		ss.Pong(ping.Serial)
-	}
 }

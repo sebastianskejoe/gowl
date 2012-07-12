@@ -50,14 +50,10 @@ func getmsg() (id int32, opcode int16, size int16, msg []byte, remain int, err e
 	opcode,err = readInt16(conn.reader)
 	if err != nil {
 		return
-//		fmt.Println(opcode, err)
-//		break
 	}
 	size,err = readInt16(conn.reader)
 	if err != nil {
 		return
-//		fmt.Println(size, err)
-//		break
 	}
 
 	// Message
@@ -65,8 +61,6 @@ func getmsg() (id int32, opcode int16, size int16, msg []byte, remain int, err e
 	_,err = conn.reader.Read(msg)
 	if err != nil {
 		return
-//		printError("getmsg", err)
-//		break
 	}
 
 	remain = conn.reader.Buffered()
@@ -74,7 +68,6 @@ func getmsg() (id int32, opcode int16, size int16, msg []byte, remain int, err e
 	return
 }
 
-//func sendmsg(obj Object, opcode int16) {
 func sendmsg(msg *message) {
 	size := len(msg.buf.Bytes())
 	buf := new(bytes.Buffer)
@@ -83,16 +76,6 @@ func sendmsg(msg *message) {
 	binary.Write(buf, binary.LittleEndian, int16(size+8))
 	binary.Write(buf, binary.LittleEndian, msg.buf.Bytes())
 
-/*	err := binary.Write(conn.writer, binary.LittleEndian, buf.Bytes())
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-	err = conn.writer.Flush()
-	if err != nil {
-		fmt.Println(err)
-		return
-	}*/
 	var cmsgbytes []byte
 	if msg.fd != 0 {
 		cmsgbytes = syscall.UnixRights(int(msg.fd))
@@ -187,9 +170,6 @@ func writeInteger(msg *message, val interface{}) {
 func writeString(msg *message, val []byte) {
 	// First get padding
 	pad := 4-(len(val) % 4)
-//	if pad == 4 {
-//		pad = 0
-//	}
 
 	writeInteger(msg, int32(len(val)+pad))
 	binary.Write(msg.buf, binary.LittleEndian, val)
