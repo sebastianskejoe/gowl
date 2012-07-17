@@ -60,7 +60,7 @@ func printRequest(name string, req string, args ...interface{}) {
 
 func delete_id_listener(c chan interface{}) {
 	for e := range c {
-		ev := e.(DisplayDelete_id)
+		ev := e.(DisplayDeleteId)
 		removeObject(int32(ev.Id))
 	}
 }

@@ -50,7 +50,7 @@ index 1b7f401..ef24c49 100644
 +	appendObject(d)
 +
 +	delchan := make(chan interface{})
-+	d.AddDelete_idListener(delchan)
++	d.AddDeleteIdListener(delchan)
 +	errchan := make(chan interface{})
 +	d.AddErrorListener(errchan)
 +	go delete_id_listener(delchan)

@@ -200,7 +200,7 @@ func PrintInterface(iface Interface) (buf *bytes.Buffer, path string)  {
 
 	// Make a proper interface name
 	iname := strings.Replace(iface.name, "wl_", "", 1)
-	tiname := strings.Title(iname)
+	tiname := makeInterfaceName(iname)
 	vname := iname[0:1]
 	buf.WriteString("package gowl")
 	if len(iface.events) > 0 {
@@ -210,10 +210,10 @@ import (
 	"bytes"
 )
 
-var _ bytes.Buffer
-`)
+var _ bytes.Buffer`)
 	}
 	buf.WriteString(fmt.Sprintf(`
+
 type %s struct {
 //	*WlObject
 	id int32
@@ -235,7 +235,7 @@ type %s struct {
 		argname := strings.Join(argnames, ", ")
 		// Make func header
 		buf.WriteString(fmt.Sprintf(`
-func (%s *%s) %s (%s) {`, vname, tiname, strings.Title(req.name), argstr))
+func (%s *%s) %s (%s) {`, vname, tiname, makeInterfaceName(req.name), argstr))
 
 		// Make func body
 		buf.WriteString(fmt.Sprintf(`
@@ -285,7 +285,7 @@ func (%s *%s) HandleEvent(opcode int16, msg []byte) {
 
 		//// Make listener type and adder	
 		buf.WriteString(fmt.Sprintf(`
-type %s%s struct {`, tiname, strings.Title(ev.name)))
+type %s%s struct {`, tiname, makeInterfaceName(ev.name)))
 		for _, arg := range ev.args {
 			buf.WriteString(fmt.Sprintf(`
 	%s %s`, strings.Title(fixVarName(arg.name)), getType(arg.t, arg.iface)))
@@ -297,7 +297,7 @@ type %s%s struct {`, tiname, strings.Title(ev.name)))
 func (%s *%s) Add%sListener(channel chan interface{}) {
 	%s.listeners[%d] = append(%s.listeners[%d], channel)
 }
-`, vname, tiname, strings.Title(ev.name), vname, opcode, vname, opcode))
+`, vname, tiname, makeInterfaceName(ev.name), vname, opcode, vname, opcode))
 
 		//// Event handler
 		argstrs := make([]string, 0)
@@ -309,7 +309,7 @@ func (%s *%s) Add%sListener(channel chan interface{}) {
 		buf.WriteString(fmt.Sprintf(`
 func %s_%s(%s *%s, msg []byte) {
 	var data %s%s
-`, iname, ev.name, vname, tiname, tiname, strings.Title(ev.name)))
+`, iname, ev.name, vname, tiname, tiname, makeInterfaceName(ev.name)))
 		if len(ev.args) > 0 {
 			buf.WriteString(`	buf := bytes.NewBuffer(msg)
 `)
@@ -418,7 +418,7 @@ func getType(t string, iface string) string {
 	case "array":
 		return "[]interface{}"
 	case "object","new_id":
-		typ := fmt.Sprintf("*%s", strings.Title(strings.Replace(iface, "wl_", "",1)))
+		typ := fmt.Sprintf("*%s", makeInterfaceName(strings.Replace(iface, "wl_", "",1)))
 		if typ == "*Object" {
 			return "Object"
 		}
@@ -432,4 +432,12 @@ func fixVarName(n string) string {
 		return val
 	}
 	return n
+}
+
+func makeInterfaceName(n string) string {
+	parts := strings.Split(n, "_")
+	for i,s := range parts {
+		parts[i] = strings.Title(s)
+	}
+	return strings.Join(parts, "")
 }

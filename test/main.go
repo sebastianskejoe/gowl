@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"strings"
 	"syscall"
+	"unsafe"
 )
 
 /*
@@ -18,10 +19,10 @@ type Display struct {
 	compositor *gowl.Compositor
 	shm *gowl.Shm
 	shell *gowl.Shell
-	pool *gowl.Shm_pool
+	pool *gowl.ShmPool
 	buffer *gowl.Buffer
 	surface *gowl.Surface
-	shell_surface *gowl.Shell_surface
+	shell_surface *gowl.ShellSurface
 	data []byte
 }
 
@@ -36,10 +37,10 @@ func main() {
 	display.compositor = gowl.NewCompositor()
 	display.shm = gowl.NewShm()
 	display.shell = gowl.NewShell()
-	display.pool = gowl.NewShm_pool()
+	display.pool = gowl.NewShmPool()
 	display.buffer = gowl.NewBuffer()
 	display.surface = gowl.NewSurface()
-	display.shell_surface = gowl.NewShell_surface()
+	display.shell_surface = gowl.NewShellSurface()
 
 	globchan := make(chan interface{})
 	go display.globalListener(globchan)
@@ -60,15 +61,16 @@ func main() {
 	col = 0
 	add = 1
 	//syscall.CloseOnExec(fd)
-	display.shm.Create_pool(display.pool, fd, 2500000)
-	display.pool.Create_buffer(display.buffer, 0, 250, 250, 1000, 1)
+	display.shm.CreatePool(display.pool, fd, 2500000)
+	display.pool.CreateBuffer(display.buffer, 0, 250, 250, 1000, 1)
 	display.pool.Destroy()
 
 	// Create surfaces
-	display.compositor.Create_surface(display.surface)
-	display.shell.Get_shell_surface(display.shell_surface, display.surface)
+	display.compositor.CreateSurface(display.surface)
+	display.shell.GetShellSurface(display.shell_surface, display.surface)
 	go Pong(display.shell_surface)
-	display.shell_surface.Set_toplevel()
+	display.shell_surface.SetToplevel()
+	display.shell_surface.SetTitle("Gowl test window")
 
 	redraw(display)
 
@@ -78,11 +80,11 @@ func main() {
 
 
 //// Event listeners
-func Pong(ss *gowl.Shell_surface) {
+func Pong(ss *gowl.ShellSurface) {
 	c := make(chan interface{})
 	ss.AddPingListener(c)
 	for p := range c {
-		ping := p.(gowl.Shell_surfacePing)
+		ping := p.(gowl.ShellSurfacePing)
 		ss.Pong(ping.Serial)
 	}
 }
@@ -150,6 +152,7 @@ func waitForSync(display *gowl.Display) {
 
 func create_tmp() (uintptr) {
 	name := C.CString("/home/sebastian/.weston-tmp/gowl-XXXXXX")
+	defer C.free(unsafe.Pointer(name))
 	fd := uintptr(C.mkostemp(name, syscall.O_CLOEXEC))
 	syscall.Ftruncate(int(fd), 250000)
 	syscall.Unlink(C.GoString(name))
