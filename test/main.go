@@ -5,14 +5,9 @@ import (
 	"fmt"
 	"strings"
 	"syscall"
-	"unsafe"
+	"io/ioutil"
+	"os"
 )
-
-/*
-#define _GNU_SOURCE
-#include <stdlib.h>
-*/
-import "C"
 
 type Display struct {
 	display *gowl.Display
@@ -52,7 +47,7 @@ func main() {
 	waitForSync(display.display)
 
 	// create pool
-	fd := create_tmp()
+	fd := create_tmp(250*250*4)
 	mmap,err := syscall.Mmap(int(fd), 0, 250000, syscall.PROT_READ|syscall.PROT_WRITE, syscall.MAP_SHARED)
 	if err != nil {
 		fmt.Println(err)
@@ -60,7 +55,6 @@ func main() {
 	display.data = mmap
 	col = 0
 	add = 1
-	//syscall.CloseOnExec(fd)
 	display.shm.CreatePool(display.pool, fd, 2500000)
 	display.pool.CreateBuffer(display.buffer, 0, 250, 250, 1000, 1)
 	display.pool.Destroy()
@@ -150,11 +144,12 @@ func waitForSync(display *gowl.Display) {
 	} ()
 }
 
-func create_tmp() (uintptr) {
-	name := C.CString("/home/sebastian/.weston-tmp/gowl-XXXXXX")
-	defer C.free(unsafe.Pointer(name))
-	fd := uintptr(C.mkostemp(name, syscall.O_CLOEXEC))
-	syscall.Ftruncate(int(fd), 250000)
-	syscall.Unlink(C.GoString(name))
-	return fd
+func create_tmp(size int64) (uintptr) {
+	tmp,err := ioutil.TempFile(os.Getenv("XDG_RUNTIME_DIR"), "gowl")
+	if err != nil {
+		fmt.Println(err)
+	}
+	tmp.Truncate(size)
+	os.Remove(tmp.Name())
+	return tmp.Fd()
 }
