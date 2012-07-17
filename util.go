@@ -4,9 +4,6 @@ import (
 	"fmt"
 )
 
-var __id int32
-
-
 var objects map[int32]Object
 
 func init() {
@@ -14,6 +11,7 @@ func init() {
 	objects[0] = nil
 }
 
+// XXX id should be found in a more clever way
 func appendObject(obj Object) int32 {
 	var id int32
 	id = -1

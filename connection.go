@@ -181,7 +181,6 @@ func writeString(msg *message, val []byte) {
 func writeFd(msg *message, val uintptr) {
 	newfd,_,_ := syscall.Syscall(syscall.SYS_FCNTL, val, syscall.F_DUPFD_CLOEXEC, 0)
 	msg.fd = newfd
-	fmt.Println("fd", newfd,val)
 }
 
 func newMessage(obj Object, opcode int16) *message {
