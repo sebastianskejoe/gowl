@@ -1,7 +1,7 @@
 package main
 
 import (
-	"gowl"
+	"github.com/sebastianskejoe/gowl"
 	"fmt"
 	"strings"
 	"syscall"
