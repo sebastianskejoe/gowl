@@ -29,6 +29,11 @@ var (
 func main() {
 	display := new(Display)
 	display.display = gowl.NewDisplay()
+	err := display.display.Connect()
+	if err != nil {
+		fmt.Println("Couldn't connect:",err)
+		return
+	}
 	display.compositor = gowl.NewCompositor()
 	display.shm = gowl.NewShm()
 	display.shell = gowl.NewShell()
