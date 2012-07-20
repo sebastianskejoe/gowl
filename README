@@ -8,7 +8,6 @@ If you want to generate the files yourself, run:
 
 	cd generator/
 	go run generate.go
-	patch -p 1 < display.patch
 
 generate.go places the generated files in the directory above the current.
 

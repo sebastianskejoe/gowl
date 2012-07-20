@@ -78,3 +78,36 @@ func error_listener(c chan interface{}) {
 		fmt.Println("Error:", ev.Object_id.Id(), ev.Code, ev.Message)
 	}
 }
+
+func (d *Display) Iterate() {
+	for {
+		id, opcode, _, msg, remain, err := getmsg()
+		if err != nil {
+			return
+		}
+		obj := getObject(id)
+		if obj != nil {
+			obj.HandleEvent(opcode, msg)
+		}
+
+		if remain == 0 {
+			break
+		}
+	}
+}
+
+func (d *Display) Connect() error {
+	err := connect_to_socket()
+	if err != nil {
+		return err
+	}
+	appendObject(d)
+
+	delchan := make(chan interface{})
+	d.AddDeleteIdListener(delchan)
+	errchan := make(chan interface{})
+	d.AddErrorListener(errchan)
+	go delete_id_listener(delchan)
+	go error_listener(errchan)
+	return nil
+}

@@ -340,13 +340,26 @@ func %s_%s(%s *%s, msg []byte) {
 			default:
 				fname = "unknownRead"
 			}
+
+			// If it is an object we need to do some other stuff
 			if obj != "not" {
+
 				buf.WriteString(fmt.Sprintf(`
 	%sid, err := readInt32(buf)
 	if err != nil {
 		// XXX Error handling
-	}
-	%s := new(%s)`, name, name, strings.Replace(getType(arg.t, arg.iface), "*", "", 1)))
+	}`, name))
+
+				// Type Object is a special thing
+				if getType(arg.t, arg.iface) == "Object" {
+					buf.WriteString(fmt.Sprintf(`
+	var %s Object`, name))
+				} else {
+					buf.WriteString(fmt.Sprintf(`
+	%s := new(%s)`, name, strings.Replace(getType(arg.t, arg.iface), "*", "", 1)))
+				}
+
+				// This is an old object which we should use getObject for
 				if obj == "old" {
 					buf.WriteString(fmt.Sprintf(`
 	%sobj := getObject(%sid)
@@ -355,6 +368,7 @@ func %s_%s(%s *%s, msg []byte) {
 	}
 	%s = %sobj.(%s)
 `, name, name, name, name, name, getType(arg.t, arg.iface)))
+				// This is a new object
 				} else {
 					buf.WriteString(fmt.Sprintf(`
 	setObject(%sid, %s)
