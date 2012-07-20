@@ -27,18 +27,18 @@ type message struct {
 
 var conn Connection
 
-func connect_to_socket() {
+func connect_to_socket() error {
 	// Connect to socket
 	addr := fmt.Sprintf("%s/%s", os.Getenv("XDG_RUNTIME_DIR"), "wayland-0")
 	c,err := net.DialUnix("unix", conn.addr, &net.UnixAddr{addr, "unix"})
 	if err != nil {
-		fmt.Println("Connect",err)
-		return
+		return err
 	}
 
 	conn.reader = bufio.NewReader(c)
 	conn.writer = bufio.NewWriter(c)
 	conn.unixconn = c
+	return nil
 }
 
 func getmsg() (id int32, opcode int16, size int16, msg []byte, remain int, err error) {
