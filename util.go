@@ -5,24 +5,32 @@ import (
 )
 
 var objects map[int32]Object
+var freeIds []int32
+var idchan chan int32
 
 func init() {
 	objects = make(map[int32]Object)
 	objects[0] = nil
+
+	freeIds = make([]int32, 0)
+	idchan = make(chan int32)
+	go pushIds(idchan)
 }
 
-// XXX id should be found in a more clever way
-func appendObject(obj Object) int32 {
+func pushIds(c chan int32) {
 	var id int32
-	id = -1
-	for k,val := range objects {
-		if val == nil && k != 0 {
-			id = k
+	for {
+		if len(freeIds) > 0 {
+			id, freeIds = freeIds[0], freeIds[1:]
+		} else {
+			id = int32(len(objects))
 		}
+		c <- id
 	}
-	if id == -1 {
-		id = int32(len(objects))
-	}
+}
+
+func appendObject(obj Object) int32 {
+	id := <-idchan
 	objects[id] = obj
 	obj.SetId(id)
 	return id
@@ -38,6 +46,7 @@ func getObject(id int32) Object {
 
 func removeObject(id int32) {
 	objects[id] = nil
+	freeIds = append(freeIds, id)
 }
 
 func PrintObject(id int32) {
