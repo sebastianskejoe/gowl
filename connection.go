@@ -9,6 +9,7 @@ import (
 	"syscall"
 	"os"
 	"net"
+	"errors"
 )
 
 type Connection struct {
@@ -53,6 +54,11 @@ func getmsg() (id int32, opcode int16, size int16, msg []byte, remain int, err e
 	}
 	size,err = readInt16(conn.reader)
 	if err != nil {
+		return
+	}
+
+	if size < 8 {
+		err = errors.New(fmt.Sprintf("Invalid msg: %d %d %d",id, opcode, size))
 		return
 	}
 
