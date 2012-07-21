@@ -121,6 +121,15 @@ func readInt32(c io.Reader) (int32, error) {
 	return val, nil
 }
 
+func readFixed(c io.Reader) (int32, error) {
+	var val int32
+	err := binary.Read(c, binary.LittleEndian, &val)
+	if err != nil {
+		return val, err
+	}
+	return val/256, nil
+}
+
 func readUint16(c io.Reader) (uint16, error) {
 	var val uint16
 	err := binary.Read(c, binary.LittleEndian, &val)
