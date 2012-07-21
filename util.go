@@ -9,6 +9,7 @@ import (
 var objects map[int32]Object
 var freeIds []int32
 var idchan chan int32
+var nextid int32
 
 func init() {
 	objects = make(map[int32]Object)
@@ -16,6 +17,7 @@ func init() {
 
 	freeIds = make([]int32, 0)
 	idchan = make(chan int32)
+	nextid = 1
 	go pushIds(idchan)
 }
 
@@ -25,7 +27,8 @@ func pushIds(c chan int32) {
 		if len(freeIds) > 0 {
 			id, freeIds = freeIds[0], freeIds[1:]
 		} else {
-			id = int32(len(objects))
+			id = nextid
+			nextid++
 		}
 		c <- id
 	}
@@ -77,7 +80,7 @@ func delete_id_listener(c chan interface{}) {
 func error_listener(c chan interface{}) {
 	for e := range c {
 		ev := e.(DisplayError)
-		fmt.Println("Error:", ev.Object_id.Id(), ev.Code, ev.Message)
+		fmt.Println("Error:", ev.ObjectId.Id(), ev.Code, ev.Message)
 	}
 }
 
