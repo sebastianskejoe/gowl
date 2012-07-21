@@ -2,6 +2,8 @@ package gowl
 
 import (
 	"fmt"
+	"io/ioutil"
+	"os"
 )
 
 var objects map[int32]Object
@@ -79,11 +81,11 @@ func error_listener(c chan interface{}) {
 	}
 }
 
-func (d *Display) Iterate() {
+func (d *Display) Iterate() error {
 	for {
 		id, opcode, _, msg, remain, err := getmsg()
 		if err != nil {
-			return
+			return err
 		}
 		obj := getObject(id)
 		if obj != nil {
@@ -94,6 +96,7 @@ func (d *Display) Iterate() {
 			break
 		}
 	}
+	return nil
 }
 
 func (d *Display) Connect() error {
@@ -110,4 +113,14 @@ func (d *Display) Connect() error {
 	go delete_id_listener(delchan)
 	go error_listener(errchan)
 	return nil
+}
+
+func CreateTmp(size int64) (uintptr) {
+	tmp,err := ioutil.TempFile(os.Getenv("XDG_RUNTIME_DIR"), "gowl")
+	if err != nil {
+		fmt.Println(err)
+	}
+	tmp.Truncate(size)
+	os.Remove(tmp.Name())
+	return tmp.Fd()
 }
