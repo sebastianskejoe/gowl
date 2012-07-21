@@ -288,7 +288,7 @@ func (%s *%s) HandleEvent(opcode int16, msg []byte) {
 type %s%s struct {`, tiname, makeInterfaceName(ev.name)))
 		for _, arg := range ev.args {
 			buf.WriteString(fmt.Sprintf(`
-	%s %s`, strings.Title(fixVarName(arg.name)), getType(arg.t, arg.iface)))
+	%s %s`, makeInterfaceName(fixVarName(arg.name)), getType(arg.t, arg.iface)))
 		}
 
 		buf.WriteString(fmt.Sprintf(`
@@ -322,9 +322,11 @@ func %s_%s(%s *%s, msg []byte) {
 //			argstr = fmt.Sprintf("%s, %s", argstr, name)
 			var fname string
 			switch arg.t {
+			case "fixed":
+				fname = "readFixed"
 			case "uint":
 				fname = "readUint32"
-			case "int", "fixed":
+			case "int":
 				fname = "readInt32"
 			case "object":
 				obj = "old"
@@ -383,7 +385,7 @@ func %s_%s(%s *%s, msg []byte) {
 `, name, fname))
 			}
 			buf.WriteString(fmt.Sprintf(`	data.%s = %s
-`, strings.Title(fixVarName(arg.name)), fixVarName(arg.name)))
+`, makeInterfaceName(fixVarName(arg.name)), fixVarName(arg.name)))
 		}
 
 		buf.WriteString(fmt.Sprintf(`
@@ -423,9 +425,11 @@ func (%s *%s) Id() int32 {
 
 func getType(t string, iface string) string {
 	switch t {
+	case "fixed":
+		return "int32"
 	case "uint":
 		return "uint32"
-	case "int", "fixed":
+	case "int":
 		return "int32"
 	case "fd":
 		return "uintptr"
