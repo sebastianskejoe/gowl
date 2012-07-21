@@ -37,7 +37,7 @@ func (d *DataSource) HandleEvent(opcode int16, msg []byte) {
 }
 
 type DataSourceTarget struct {
-	Mime_type string
+	MimeType string
 }
 
 func (d *DataSource) AddTargetListener(channel chan interface{}) {
@@ -52,7 +52,7 @@ func data_source_target(d *DataSource, msg []byte) {
 	if err != nil {
 		// XXX Error handling
 	}
-	data.Mime_type = mime_type
+	data.MimeType = mime_type
 
 	for _,channel := range d.listeners[0] {
 		go func () { channel <- data }()
@@ -61,7 +61,7 @@ func data_source_target(d *DataSource, msg []byte) {
 }
 
 type DataSourceSend struct {
-	Mime_type string
+	MimeType string
 	Fd uintptr
 }
 
@@ -77,7 +77,7 @@ func data_source_send(d *DataSource, msg []byte) {
 	if err != nil {
 		// XXX Error handling
 	}
-	data.Mime_type = mime_type
+	data.MimeType = mime_type
 
 	fd,err := readUintptr(buf)
 	if err != nil {

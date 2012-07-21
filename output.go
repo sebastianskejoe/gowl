@@ -24,8 +24,8 @@ func (o *Output) HandleEvent(opcode int16, msg []byte) {
 type OutputGeometry struct {
 	X int32
 	Y int32
-	Physical_width int32
-	Physical_height int32
+	PhysicalWidth int32
+	PhysicalHeight int32
 	Subpixel int32
 	Make string
 	Model string
@@ -55,13 +55,13 @@ func output_geometry(o *Output, msg []byte) {
 	if err != nil {
 		// XXX Error handling
 	}
-	data.Physical_width = physical_width
+	data.PhysicalWidth = physical_width
 
 	physical_height,err := readInt32(buf)
 	if err != nil {
 		// XXX Error handling
 	}
-	data.Physical_height = physical_height
+	data.PhysicalHeight = physical_height
 
 	subpixel,err := readInt32(buf)
 	if err != nil {

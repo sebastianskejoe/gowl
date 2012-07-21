@@ -43,7 +43,7 @@ func (d *Display) HandleEvent(opcode int16, msg []byte) {
 }
 
 type DisplayError struct {
-	Object_id Object
+	ObjectId Object
 	Code uint32
 	Message string
 }
@@ -66,7 +66,7 @@ func display_error(d *Display, msg []byte) {
 		return
 	}
 	object_id = object_idobj.(Object)
-	data.Object_id = object_id
+	data.ObjectId = object_id
 
 	code,err := readUint32(buf)
 	if err != nil {

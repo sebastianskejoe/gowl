@@ -187,9 +187,9 @@ func keyboard_key(k *Keyboard, msg []byte) {
 
 type KeyboardModifiers struct {
 	Serial uint32
-	Mods_depressed uint32
-	Mods_latched uint32
-	Mods_locked uint32
+	ModsDepressed uint32
+	ModsLatched uint32
+	ModsLocked uint32
 	Group uint32
 }
 
@@ -211,19 +211,19 @@ func keyboard_modifiers(k *Keyboard, msg []byte) {
 	if err != nil {
 		// XXX Error handling
 	}
-	data.Mods_depressed = mods_depressed
+	data.ModsDepressed = mods_depressed
 
 	mods_latched,err := readUint32(buf)
 	if err != nil {
 		// XXX Error handling
 	}
-	data.Mods_latched = mods_latched
+	data.ModsLatched = mods_latched
 
 	mods_locked,err := readUint32(buf)
 	if err != nil {
 		// XXX Error handling
 	}
-	data.Mods_locked = mods_locked
+	data.ModsLocked = mods_locked
 
 	group,err := readUint32(buf)
 	if err != nil {

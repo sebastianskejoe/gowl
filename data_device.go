@@ -101,13 +101,13 @@ func data_device_enter(d *DataDevice, msg []byte) {
 	surface = surfaceobj.(*Surface)
 	data.Surface = surface
 
-	x,err := readInt32(buf)
+	x,err := readFixed(buf)
 	if err != nil {
 		// XXX Error handling
 	}
 	data.X = x
 
-	y,err := readInt32(buf)
+	y,err := readFixed(buf)
 	if err != nil {
 		// XXX Error handling
 	}
@@ -167,13 +167,13 @@ func data_device_motion(d *DataDevice, msg []byte) {
 	}
 	data.Time = time
 
-	x,err := readInt32(buf)
+	x,err := readFixed(buf)
 	if err != nil {
 		// XXX Error handling
 	}
 	data.X = x
 
-	y,err := readInt32(buf)
+	y,err := readFixed(buf)
 	if err != nil {
 		// XXX Error handling
 	}

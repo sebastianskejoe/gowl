@@ -68,13 +68,13 @@ func touch_down(t *Touch, msg []byte) {
 	}
 	data.Id = id
 
-	x,err := readInt32(buf)
+	x,err := readFixed(buf)
 	if err != nil {
 		// XXX Error handling
 	}
 	data.X = x
 
-	y,err := readInt32(buf)
+	y,err := readFixed(buf)
 	if err != nil {
 		// XXX Error handling
 	}
@@ -151,13 +151,13 @@ func touch_motion(t *Touch, msg []byte) {
 	}
 	data.Id = id
 
-	x,err := readInt32(buf)
+	x,err := readFixed(buf)
 	if err != nil {
 		// XXX Error handling
 	}
 	data.X = x
 
-	y,err := readInt32(buf)
+	y,err := readFixed(buf)
 	if err != nil {
 		// XXX Error handling
 	}

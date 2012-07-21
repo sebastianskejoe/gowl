@@ -35,8 +35,8 @@ func (p *Pointer) HandleEvent(opcode int16, msg []byte) {
 type PointerEnter struct {
 	Serial uint32
 	Surface *Surface
-	Surface_x int32
-	Surface_y int32
+	SurfaceX int32
+	SurfaceY int32
 }
 
 func (p *Pointer) AddEnterListener(channel chan interface{}) {
@@ -65,17 +65,17 @@ func pointer_enter(p *Pointer, msg []byte) {
 	surface = surfaceobj.(*Surface)
 	data.Surface = surface
 
-	surface_x,err := readInt32(buf)
+	surface_x,err := readFixed(buf)
 	if err != nil {
 		// XXX Error handling
 	}
-	data.Surface_x = surface_x
+	data.SurfaceX = surface_x
 
-	surface_y,err := readInt32(buf)
+	surface_y,err := readFixed(buf)
 	if err != nil {
 		// XXX Error handling
 	}
-	data.Surface_y = surface_y
+	data.SurfaceY = surface_y
 
 	for _,channel := range p.listeners[0] {
 		go func () { channel <- data }()
@@ -122,8 +122,8 @@ func pointer_leave(p *Pointer, msg []byte) {
 
 type PointerMotion struct {
 	Time uint32
-	Surface_x int32
-	Surface_y int32
+	SurfaceX int32
+	SurfaceY int32
 }
 
 func (p *Pointer) AddMotionListener(channel chan interface{}) {
@@ -140,17 +140,17 @@ func pointer_motion(p *Pointer, msg []byte) {
 	}
 	data.Time = time
 
-	surface_x,err := readInt32(buf)
+	surface_x,err := readFixed(buf)
 	if err != nil {
 		// XXX Error handling
 	}
-	data.Surface_x = surface_x
+	data.SurfaceX = surface_x
 
-	surface_y,err := readInt32(buf)
+	surface_y,err := readFixed(buf)
 	if err != nil {
 		// XXX Error handling
 	}
-	data.Surface_y = surface_y
+	data.SurfaceY = surface_y
 
 	for _,channel := range p.listeners[2] {
 		go func () { channel <- data }()
@@ -229,7 +229,7 @@ func pointer_axis(p *Pointer, msg []byte) {
 	}
 	data.Axis = axis
 
-	value,err := readInt32(buf)
+	value,err := readFixed(buf)
 	if err != nil {
 		// XXX Error handling
 	}
