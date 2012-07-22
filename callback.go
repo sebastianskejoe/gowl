@@ -40,7 +40,9 @@ func callback_done(c *Callback, msg []byte) {
 	data.Serial = serial
 
 	for _,channel := range c.listeners[0] {
-		go func () { channel <- data }()
+		go func() {
+			channel <- data
+		} ()
 	}
 	printEvent("callback", "done", serial)
 }

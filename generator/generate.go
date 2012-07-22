@@ -390,7 +390,9 @@ func %s_%s(%s *%s, msg []byte) {
 
 		buf.WriteString(fmt.Sprintf(`
 	for _,channel := range %s.listeners[%d] {
-		go func () { channel <- data }()
+		go func() {
+			channel <- data
+		} ()
 	}
 	printEvent("%s", "%s", %s)
 }

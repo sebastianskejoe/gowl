@@ -81,7 +81,9 @@ func touch_down(t *Touch, msg []byte) {
 	data.Y = y
 
 	for _,channel := range t.listeners[0] {
-		go func () { channel <- data }()
+		go func() {
+			channel <- data
+		} ()
 	}
 	printEvent("touch", "down", serial, time, surface, id, x, y)
 }
@@ -119,7 +121,9 @@ func touch_up(t *Touch, msg []byte) {
 	data.Id = id
 
 	for _,channel := range t.listeners[1] {
-		go func () { channel <- data }()
+		go func() {
+			channel <- data
+		} ()
 	}
 	printEvent("touch", "up", serial, time, id)
 }
@@ -164,7 +168,9 @@ func touch_motion(t *Touch, msg []byte) {
 	data.Y = y
 
 	for _,channel := range t.listeners[2] {
-		go func () { channel <- data }()
+		go func() {
+			channel <- data
+		} ()
 	}
 	printEvent("touch", "motion", time, id, x, y)
 }
@@ -180,7 +186,9 @@ func touch_frame(t *Touch, msg []byte) {
 	var data TouchFrame
 
 	for _,channel := range t.listeners[3] {
-		go func () { channel <- data }()
+		go func() {
+			channel <- data
+		} ()
 	}
 	printEvent("touch", "frame", )
 }
@@ -196,7 +204,9 @@ func touch_cancel(t *Touch, msg []byte) {
 	var data TouchCancel
 
 	for _,channel := range t.listeners[4] {
-		go func () { channel <- data }()
+		go func() {
+			channel <- data
+		} ()
 	}
 	printEvent("touch", "cancel", )
 }

@@ -54,7 +54,9 @@ func keyboard_keymap(k *Keyboard, msg []byte) {
 	data.Size = size
 
 	for _,channel := range k.listeners[0] {
-		go func () { channel <- data }()
+		go func() {
+			channel <- data
+		} ()
 	}
 	printEvent("keyboard", "keymap", format, fd, size)
 }
@@ -98,7 +100,9 @@ func keyboard_enter(k *Keyboard, msg []byte) {
 	data.Keys = keys
 
 	for _,channel := range k.listeners[1] {
-		go func () { channel <- data }()
+		go func() {
+			channel <- data
+		} ()
 	}
 	printEvent("keyboard", "enter", serial, surface, keys)
 }
@@ -135,7 +139,9 @@ func keyboard_leave(k *Keyboard, msg []byte) {
 	data.Surface = surface
 
 	for _,channel := range k.listeners[2] {
-		go func () { channel <- data }()
+		go func() {
+			channel <- data
+		} ()
 	}
 	printEvent("keyboard", "leave", serial, surface)
 }
@@ -180,7 +186,9 @@ func keyboard_key(k *Keyboard, msg []byte) {
 	data.State = state
 
 	for _,channel := range k.listeners[3] {
-		go func () { channel <- data }()
+		go func() {
+			channel <- data
+		} ()
 	}
 	printEvent("keyboard", "key", serial, time, key, state)
 }
@@ -232,7 +240,9 @@ func keyboard_modifiers(k *Keyboard, msg []byte) {
 	data.Group = group
 
 	for _,channel := range k.listeners[4] {
-		go func () { channel <- data }()
+		go func() {
+			channel <- data
+		} ()
 	}
 	printEvent("keyboard", "modifiers", serial, mods_depressed, mods_latched, mods_locked, group)
 }

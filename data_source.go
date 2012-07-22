@@ -55,7 +55,9 @@ func data_source_target(d *DataSource, msg []byte) {
 	data.MimeType = mime_type
 
 	for _,channel := range d.listeners[0] {
-		go func () { channel <- data }()
+		go func() {
+			channel <- data
+		} ()
 	}
 	printEvent("data_source", "target", mime_type)
 }
@@ -86,7 +88,9 @@ func data_source_send(d *DataSource, msg []byte) {
 	data.Fd = fd
 
 	for _,channel := range d.listeners[1] {
-		go func () { channel <- data }()
+		go func() {
+			channel <- data
+		} ()
 	}
 	printEvent("data_source", "send", mime_type, fd)
 }
@@ -102,7 +106,9 @@ func data_source_cancelled(d *DataSource, msg []byte) {
 	var data DataSourceCancelled
 
 	for _,channel := range d.listeners[2] {
-		go func () { channel <- data }()
+		go func() {
+			channel <- data
+		} ()
 	}
 	printEvent("data_source", "cancelled", )
 }

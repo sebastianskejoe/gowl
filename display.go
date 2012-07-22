@@ -81,7 +81,9 @@ func display_error(d *Display, msg []byte) {
 	data.Message = message
 
 	for _,channel := range d.listeners[0] {
-		go func () { channel <- data }()
+		go func() {
+			channel <- data
+		} ()
 	}
 	printEvent("display", "error", object_id, code, message)
 }
@@ -119,7 +121,9 @@ func display_global(d *Display, msg []byte) {
 	data.Version = version
 
 	for _,channel := range d.listeners[1] {
-		go func () { channel <- data }()
+		go func() {
+			channel <- data
+		} ()
 	}
 	printEvent("display", "global", name, iface, version)
 }
@@ -143,7 +147,9 @@ func display_global_remove(d *Display, msg []byte) {
 	data.Name = name
 
 	for _,channel := range d.listeners[2] {
-		go func () { channel <- data }()
+		go func() {
+			channel <- data
+		} ()
 	}
 	printEvent("display", "global_remove", name)
 }
@@ -167,7 +173,9 @@ func display_delete_id(d *Display, msg []byte) {
 	data.Id = id
 
 	for _,channel := range d.listeners[3] {
-		go func () { channel <- data }()
+		go func() {
+			channel <- data
+		} ()
 	}
 	printEvent("display", "delete_id", id)
 }

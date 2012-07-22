@@ -67,7 +67,9 @@ func seat_capabilities(s *Seat, msg []byte) {
 	data.Capabilities = capabilities
 
 	for _,channel := range s.listeners[0] {
-		go func () { channel <- data }()
+		go func() {
+			channel <- data
+		} ()
 	}
 	printEvent("seat", "capabilities", capabilities)
 }

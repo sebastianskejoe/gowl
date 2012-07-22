@@ -78,7 +78,9 @@ func pointer_enter(p *Pointer, msg []byte) {
 	data.SurfaceY = surface_y
 
 	for _,channel := range p.listeners[0] {
-		go func () { channel <- data }()
+		go func() {
+			channel <- data
+		} ()
 	}
 	printEvent("pointer", "enter", serial, surface, surface_x, surface_y)
 }
@@ -115,7 +117,9 @@ func pointer_leave(p *Pointer, msg []byte) {
 	data.Surface = surface
 
 	for _,channel := range p.listeners[1] {
-		go func () { channel <- data }()
+		go func() {
+			channel <- data
+		} ()
 	}
 	printEvent("pointer", "leave", serial, surface)
 }
@@ -153,7 +157,9 @@ func pointer_motion(p *Pointer, msg []byte) {
 	data.SurfaceY = surface_y
 
 	for _,channel := range p.listeners[2] {
-		go func () { channel <- data }()
+		go func() {
+			channel <- data
+		} ()
 	}
 	printEvent("pointer", "motion", time, surface_x, surface_y)
 }
@@ -198,7 +204,9 @@ func pointer_button(p *Pointer, msg []byte) {
 	data.State = state
 
 	for _,channel := range p.listeners[3] {
-		go func () { channel <- data }()
+		go func() {
+			channel <- data
+		} ()
 	}
 	printEvent("pointer", "button", serial, time, button, state)
 }
@@ -236,7 +244,9 @@ func pointer_axis(p *Pointer, msg []byte) {
 	data.Value = value
 
 	for _,channel := range p.listeners[4] {
-		go func () { channel <- data }()
+		go func() {
+			channel <- data
+		} ()
 	}
 	printEvent("pointer", "axis", time, axis, value)
 }

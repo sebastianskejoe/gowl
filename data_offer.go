@@ -65,7 +65,9 @@ func data_offer_offer(d *DataOffer, msg []byte) {
 	data.Typ = typ
 
 	for _,channel := range d.listeners[0] {
-		go func () { channel <- data }()
+		go func() {
+			channel <- data
+		} ()
 	}
 	printEvent("data_offer", "offer", typ)
 }

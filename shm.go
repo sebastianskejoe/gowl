@@ -51,7 +51,9 @@ func shm_format(s *Shm, msg []byte) {
 	data.Format = format
 
 	for _,channel := range s.listeners[0] {
-		go func () { channel <- data }()
+		go func() {
+			channel <- data
+		} ()
 	}
 	printEvent("shm", "format", format)
 }

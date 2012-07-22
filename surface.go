@@ -99,7 +99,9 @@ func surface_enter(s *Surface, msg []byte) {
 	data.Output = output
 
 	for _,channel := range s.listeners[0] {
-		go func () { channel <- data }()
+		go func() {
+			channel <- data
+		} ()
 	}
 	printEvent("surface", "enter", output)
 }
@@ -129,7 +131,9 @@ func surface_leave(s *Surface, msg []byte) {
 	data.Output = output
 
 	for _,channel := range s.listeners[1] {
-		go func () { channel <- data }()
+		go func() {
+			channel <- data
+		} ()
 	}
 	printEvent("surface", "leave", output)
 }

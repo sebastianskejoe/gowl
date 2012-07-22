@@ -82,7 +82,9 @@ func output_geometry(o *Output, msg []byte) {
 	data.Model = model
 
 	for _,channel := range o.listeners[0] {
-		go func () { channel <- data }()
+		go func() {
+			channel <- data
+		} ()
 	}
 	printEvent("output", "geometry", x, y, physical_width, physical_height, subpixel, make, model)
 }
@@ -127,7 +129,9 @@ func output_mode(o *Output, msg []byte) {
 	data.Refresh = refresh
 
 	for _,channel := range o.listeners[1] {
-		go func () { channel <- data }()
+		go func() {
+			channel <- data
+		} ()
 	}
 	printEvent("output", "mode", flags, width, height, refresh)
 }

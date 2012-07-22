@@ -132,7 +132,9 @@ func shell_surface_ping(s *ShellSurface, msg []byte) {
 	data.Serial = serial
 
 	for _,channel := range s.listeners[0] {
-		go func () { channel <- data }()
+		go func() {
+			channel <- data
+		} ()
 	}
 	printEvent("shell_surface", "ping", serial)
 }
@@ -170,7 +172,9 @@ func shell_surface_configure(s *ShellSurface, msg []byte) {
 	data.Height = height
 
 	for _,channel := range s.listeners[1] {
-		go func () { channel <- data }()
+		go func() {
+			channel <- data
+		} ()
 	}
 	printEvent("shell_surface", "configure", edges, width, height)
 }
@@ -186,7 +190,9 @@ func shell_surface_popup_done(s *ShellSurface, msg []byte) {
 	var data ShellSurfacePopupDone
 
 	for _,channel := range s.listeners[2] {
-		go func () { channel <- data }()
+		go func() {
+			channel <- data
+		} ()
 	}
 	printEvent("shell_surface", "popup_done", )
 }

@@ -62,7 +62,9 @@ func data_device_data_offer(d *DataDevice, msg []byte) {
 	data.Id = id
 
 	for _,channel := range d.listeners[0] {
-		go func () { channel <- data }()
+		go func() {
+			channel <- data
+		} ()
 	}
 	printEvent("data_device", "data_offer", id)
 }
@@ -126,7 +128,9 @@ func data_device_enter(d *DataDevice, msg []byte) {
 	data.Id = id
 
 	for _,channel := range d.listeners[1] {
-		go func () { channel <- data }()
+		go func() {
+			channel <- data
+		} ()
 	}
 	printEvent("data_device", "enter", serial, surface, x, y, id)
 }
@@ -142,7 +146,9 @@ func data_device_leave(d *DataDevice, msg []byte) {
 	var data DataDeviceLeave
 
 	for _,channel := range d.listeners[2] {
-		go func () { channel <- data }()
+		go func() {
+			channel <- data
+		} ()
 	}
 	printEvent("data_device", "leave", )
 }
@@ -180,7 +186,9 @@ func data_device_motion(d *DataDevice, msg []byte) {
 	data.Y = y
 
 	for _,channel := range d.listeners[3] {
-		go func () { channel <- data }()
+		go func() {
+			channel <- data
+		} ()
 	}
 	printEvent("data_device", "motion", time, x, y)
 }
@@ -196,7 +204,9 @@ func data_device_drop(d *DataDevice, msg []byte) {
 	var data DataDeviceDrop
 
 	for _,channel := range d.listeners[4] {
-		go func () { channel <- data }()
+		go func() {
+			channel <- data
+		} ()
 	}
 	printEvent("data_device", "drop", )
 }
@@ -226,7 +236,9 @@ func data_device_selection(d *DataDevice, msg []byte) {
 	data.Id = id
 
 	for _,channel := range d.listeners[5] {
-		go func () { channel <- data }()
+		go func() {
+			channel <- data
+		} ()
 	}
 	printEvent("data_device", "selection", id)
 }
