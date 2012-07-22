@@ -19,7 +19,7 @@ func (s *ShellSurface) Pong (serial uint32) {
 	writeInteger(msg,serial)
 
 	sendmsg(msg)
-	printRequest("shell_surface", "pong", serial)
+	printRequest("shell_surface", s, "pong", serial)
 }
 
 func (s *ShellSurface) Move (seat *Seat, serial uint32) {
@@ -28,7 +28,7 @@ func (s *ShellSurface) Move (seat *Seat, serial uint32) {
 	writeInteger(msg,serial)
 
 	sendmsg(msg)
-	printRequest("shell_surface", "move", seat, serial)
+	printRequest("shell_surface", s, "move", seat.Id(), serial)
 }
 
 func (s *ShellSurface) Resize (seat *Seat, serial uint32, edges uint32) {
@@ -38,14 +38,14 @@ func (s *ShellSurface) Resize (seat *Seat, serial uint32, edges uint32) {
 	writeInteger(msg,edges)
 
 	sendmsg(msg)
-	printRequest("shell_surface", "resize", seat, serial, edges)
+	printRequest("shell_surface", s, "resize", seat.Id(), serial, edges)
 }
 
 func (s *ShellSurface) SetToplevel () {
 	msg := newMessage(s, 3)
 
 	sendmsg(msg)
-	printRequest("shell_surface", "set_toplevel", )
+	printRequest("shell_surface", s, "set_toplevel")
 }
 
 func (s *ShellSurface) SetTransient (parent *Surface, x int32, y int32, flags uint32) {
@@ -56,7 +56,7 @@ func (s *ShellSurface) SetTransient (parent *Surface, x int32, y int32, flags ui
 	writeInteger(msg,flags)
 
 	sendmsg(msg)
-	printRequest("shell_surface", "set_transient", parent, x, y, flags)
+	printRequest("shell_surface", s, "set_transient", parent.Id(), x, y, flags)
 }
 
 func (s *ShellSurface) SetFullscreen (method uint32, framerate uint32, output *Output) {
@@ -66,7 +66,7 @@ func (s *ShellSurface) SetFullscreen (method uint32, framerate uint32, output *O
 	writeInteger(msg,output.Id())
 
 	sendmsg(msg)
-	printRequest("shell_surface", "set_fullscreen", method, framerate, output)
+	printRequest("shell_surface", s, "set_fullscreen", method, framerate, output.Id())
 }
 
 func (s *ShellSurface) SetPopup (seat *Seat, serial uint32, parent *Surface, x int32, y int32, flags uint32) {
@@ -79,7 +79,7 @@ func (s *ShellSurface) SetPopup (seat *Seat, serial uint32, parent *Surface, x i
 	writeInteger(msg,flags)
 
 	sendmsg(msg)
-	printRequest("shell_surface", "set_popup", seat, serial, parent, x, y, flags)
+	printRequest("shell_surface", s, "set_popup", seat.Id(), serial, parent.Id(), x, y, flags)
 }
 
 func (s *ShellSurface) SetMaximized (output *Output) {
@@ -87,7 +87,7 @@ func (s *ShellSurface) SetMaximized (output *Output) {
 	writeInteger(msg,output.Id())
 
 	sendmsg(msg)
-	printRequest("shell_surface", "set_maximized", output)
+	printRequest("shell_surface", s, "set_maximized", output.Id())
 }
 
 func (s *ShellSurface) SetTitle (title string) {
@@ -95,7 +95,7 @@ func (s *ShellSurface) SetTitle (title string) {
 	writeString(msg,[]byte(title))
 
 	sendmsg(msg)
-	printRequest("shell_surface", "set_title", title)
+	printRequest("shell_surface", s, "set_title", title)
 }
 
 func (s *ShellSurface) SetClass (class_ string) {
@@ -103,7 +103,7 @@ func (s *ShellSurface) SetClass (class_ string) {
 	writeString(msg,[]byte(class_))
 
 	sendmsg(msg)
-	printRequest("shell_surface", "set_class", class_)
+	printRequest("shell_surface", s, "set_class", class_)
 }
 
 //// Events
@@ -136,7 +136,7 @@ func shell_surface_ping(s *ShellSurface, msg []byte) {
 			channel <- data
 		} ()
 	}
-	printEvent("shell_surface", "ping", serial)
+	printEvent("shell_surface", s, "ping", serial)
 }
 
 type ShellSurfaceConfigure struct {
@@ -176,7 +176,7 @@ func shell_surface_configure(s *ShellSurface, msg []byte) {
 			channel <- data
 		} ()
 	}
-	printEvent("shell_surface", "configure", edges, width, height)
+	printEvent("shell_surface", s, "configure", edges, width, height)
 }
 
 type ShellSurfacePopupDone struct {
@@ -194,7 +194,7 @@ func shell_surface_popup_done(s *ShellSurface, msg []byte) {
 			channel <- data
 		} ()
 	}
-	printEvent("shell_surface", "popup_done", )
+	printEvent("shell_surface", s, "popup_done")
 }
 
 func NewShellSurface() (s *ShellSurface) {

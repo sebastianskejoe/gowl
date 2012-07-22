@@ -22,7 +22,7 @@ func (p *Pointer) SetCursor (serial uint32, surface *Surface, hotspot_x int32, h
 	writeInteger(msg,hotspot_y)
 
 	sendmsg(msg)
-	printRequest("pointer", "set_cursor", serial, surface, hotspot_x, hotspot_y)
+	printRequest("pointer", p, "set_cursor", serial, surface.Id(), hotspot_x, hotspot_y)
 }
 
 //// Events
@@ -82,7 +82,7 @@ func pointer_enter(p *Pointer, msg []byte) {
 			channel <- data
 		} ()
 	}
-	printEvent("pointer", "enter", serial, surface, surface_x, surface_y)
+	printEvent("pointer", p, "enter", serial, surface.Id(), surface_x, surface_y)
 }
 
 type PointerLeave struct {
@@ -121,7 +121,7 @@ func pointer_leave(p *Pointer, msg []byte) {
 			channel <- data
 		} ()
 	}
-	printEvent("pointer", "leave", serial, surface)
+	printEvent("pointer", p, "leave", serial, surface.Id())
 }
 
 type PointerMotion struct {
@@ -161,7 +161,7 @@ func pointer_motion(p *Pointer, msg []byte) {
 			channel <- data
 		} ()
 	}
-	printEvent("pointer", "motion", time, surface_x, surface_y)
+	printEvent("pointer", p, "motion", time, surface_x, surface_y)
 }
 
 type PointerButton struct {
@@ -208,7 +208,7 @@ func pointer_button(p *Pointer, msg []byte) {
 			channel <- data
 		} ()
 	}
-	printEvent("pointer", "button", serial, time, button, state)
+	printEvent("pointer", p, "button", serial, time, button, state)
 }
 
 type PointerAxis struct {
@@ -248,7 +248,7 @@ func pointer_axis(p *Pointer, msg []byte) {
 			channel <- data
 		} ()
 	}
-	printEvent("pointer", "axis", time, axis, value)
+	printEvent("pointer", p, "axis", time, axis, value)
 }
 
 func NewPointer() (p *Pointer) {

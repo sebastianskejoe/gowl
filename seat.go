@@ -20,7 +20,7 @@ func (s *Seat) GetPointer (id *Pointer) {
 	writeInteger(msg,id.Id())
 
 	sendmsg(msg)
-	printRequest("seat", "get_pointer", id)
+	printRequest("seat", s, "get_pointer", "new id", id.Id())
 }
 
 func (s *Seat) GetKeyboard (id *Keyboard) {
@@ -29,7 +29,7 @@ func (s *Seat) GetKeyboard (id *Keyboard) {
 	writeInteger(msg,id.Id())
 
 	sendmsg(msg)
-	printRequest("seat", "get_keyboard", id)
+	printRequest("seat", s, "get_keyboard", "new id", id.Id())
 }
 
 func (s *Seat) GetTouch (id *Touch) {
@@ -38,7 +38,7 @@ func (s *Seat) GetTouch (id *Touch) {
 	writeInteger(msg,id.Id())
 
 	sendmsg(msg)
-	printRequest("seat", "get_touch", id)
+	printRequest("seat", s, "get_touch", "new id", id.Id())
 }
 
 //// Events
@@ -71,7 +71,7 @@ func seat_capabilities(s *Seat, msg []byte) {
 			channel <- data
 		} ()
 	}
-	printEvent("seat", "capabilities", capabilities)
+	printEvent("seat", s, "capabilities", capabilities)
 }
 
 func NewSeat() (s *Seat) {

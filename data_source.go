@@ -19,14 +19,14 @@ func (d *DataSource) Offer (typ string) {
 	writeString(msg,[]byte(typ))
 
 	sendmsg(msg)
-	printRequest("data_source", "offer", typ)
+	printRequest("data_source", d, "offer", typ)
 }
 
 func (d *DataSource) Destroy () {
 	msg := newMessage(d, 1)
 
 	sendmsg(msg)
-	printRequest("data_source", "destroy", )
+	printRequest("data_source", d, "destroy")
 }
 
 //// Events
@@ -59,7 +59,7 @@ func data_source_target(d *DataSource, msg []byte) {
 			channel <- data
 		} ()
 	}
-	printEvent("data_source", "target", mime_type)
+	printEvent("data_source", d, "target", mime_type)
 }
 
 type DataSourceSend struct {
@@ -92,7 +92,7 @@ func data_source_send(d *DataSource, msg []byte) {
 			channel <- data
 		} ()
 	}
-	printEvent("data_source", "send", mime_type, fd)
+	printEvent("data_source", d, "send", mime_type, fd)
 }
 
 type DataSourceCancelled struct {
@@ -110,7 +110,7 @@ func data_source_cancelled(d *DataSource, msg []byte) {
 			channel <- data
 		} ()
 	}
-	printEvent("data_source", "cancelled", )
+	printEvent("data_source", d, "cancelled")
 }
 
 func NewDataSource() (d *DataSource) {

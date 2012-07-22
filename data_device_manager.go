@@ -14,7 +14,7 @@ func (d *DataDeviceManager) CreateDataSource (id *DataSource) {
 	writeInteger(msg,id.Id())
 
 	sendmsg(msg)
-	printRequest("data_device_manager", "create_data_source", id)
+	printRequest("data_device_manager", d, "create_data_source", "new id", id.Id())
 }
 
 func (d *DataDeviceManager) GetDataDevice (id *DataDevice, seat *Seat) {
@@ -24,7 +24,7 @@ func (d *DataDeviceManager) GetDataDevice (id *DataDevice, seat *Seat) {
 	writeInteger(msg,seat.Id())
 
 	sendmsg(msg)
-	printRequest("data_device_manager", "get_data_device", id, seat)
+	printRequest("data_device_manager", d, "get_data_device", "new id", id.Id(), seat.Id())
 }
 
 //// Events

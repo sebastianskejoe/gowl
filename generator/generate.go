@@ -227,9 +227,18 @@ type %s struct {
 	for opcode,req := range iface.requests {
 		argstrs := make([]string, 0)
 		argnames := make([]string, 0)
+		argnames = append(argnames, fmt.Sprint("\"",req.name,"\""))
 		for _,arg := range req.args {
 			argstrs = append(argstrs, fmt.Sprintf("%s %s", fixVarName(arg.name), getType(arg.t, arg.iface)))
-			argnames = append(argnames, fixVarName(arg.name))
+			var an string
+			if arg.t == "object" {
+				an = fmt.Sprintf("%s.Id()", fixVarName(arg.name))
+			} else if arg.t == "new_id" {
+				an = fmt.Sprintf("\"new id\", %s.Id()", fixVarName(arg.name))
+			} else {
+				an = fixVarName(arg.name)
+			}
+			argnames = append(argnames, an)
 		}
 		argstr := strings.Join(argstrs, ", ")
 		argname := strings.Join(argnames, ", ")
@@ -263,9 +272,9 @@ func (%s *%s) %s (%s) {`, vname, tiname, makeInterfaceName(req.name), argstr))
 
 		buf.WriteString(fmt.Sprintf(`
 	sendmsg(msg)
-	printRequest("%s", "%s", %s)
+	printRequest("%s", %s, %s)
 }
-`, iname, req.name, argname))
+`, iname, vname, argname))
 	}
 
 	//// EVENTS
@@ -301,8 +310,17 @@ func (%s *%s) Add%sListener(channel chan interface{}) {
 
 		//// Event handler
 		argstrs := make([]string, 0)
+		argstrs = append(argstrs, fmt.Sprint("\"",ev.name,"\""))
+		var an string
 		for _,arg := range ev.args {
-			argstrs = append(argstrs, fixVarName(arg.name))
+			if arg.t == "object" {
+				an = fmt.Sprintf("%s.Id()", fixVarName(arg.name))
+			} else if arg.t == "new_id" {
+				an = fmt.Sprintf("\"new id\", %s.Id()", fixVarName(arg.name))
+			} else {
+				an = fixVarName(arg.name)
+			}
+			argstrs = append(argstrs, an)
 		}
 		argstr := strings.Join(argstrs, ", ")
 
@@ -315,11 +333,9 @@ func %s_%s(%s *%s, msg []byte) {
 `)
 		}
 		// Func body
-//		var argstr string
 		for _, arg := range ev.args {
 			name := fixVarName(arg.name)
 			obj := "not"
-//			argstr = fmt.Sprintf("%s, %s", argstr, name)
 			var fname string
 			switch arg.t {
 			case "fixed":
@@ -394,9 +410,9 @@ func %s_%s(%s *%s, msg []byte) {
 			channel <- data
 		} ()
 	}
-	printEvent("%s", "%s", %s)
+	printEvent("%s", %s, %s)
 }
-`, vname, opcode, iname, ev.name, argstr))
+`, vname, opcode, iname, vname, argstr))
 
 	}
 

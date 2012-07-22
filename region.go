@@ -12,7 +12,7 @@ func (r *Region) Destroy () {
 	msg := newMessage(r, 0)
 
 	sendmsg(msg)
-	printRequest("region", "destroy", )
+	printRequest("region", r, "destroy")
 }
 
 func (r *Region) Add (x int32, y int32, width int32, height int32) {
@@ -23,7 +23,7 @@ func (r *Region) Add (x int32, y int32, width int32, height int32) {
 	writeInteger(msg,height)
 
 	sendmsg(msg)
-	printRequest("region", "add", x, y, width, height)
+	printRequest("region", r, "add", x, y, width, height)
 }
 
 func (r *Region) Subtract (x int32, y int32, width int32, height int32) {
@@ -34,7 +34,7 @@ func (r *Region) Subtract (x int32, y int32, width int32, height int32) {
 	writeInteger(msg,height)
 
 	sendmsg(msg)
-	printRequest("region", "subtract", x, y, width, height)
+	printRequest("region", r, "subtract", x, y, width, height)
 }
 
 //// Events

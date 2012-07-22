@@ -58,7 +58,7 @@ func keyboard_keymap(k *Keyboard, msg []byte) {
 			channel <- data
 		} ()
 	}
-	printEvent("keyboard", "keymap", format, fd, size)
+	printEvent("keyboard", k, "keymap", format, fd, size)
 }
 
 type KeyboardEnter struct {
@@ -104,7 +104,7 @@ func keyboard_enter(k *Keyboard, msg []byte) {
 			channel <- data
 		} ()
 	}
-	printEvent("keyboard", "enter", serial, surface, keys)
+	printEvent("keyboard", k, "enter", serial, surface.Id(), keys)
 }
 
 type KeyboardLeave struct {
@@ -143,7 +143,7 @@ func keyboard_leave(k *Keyboard, msg []byte) {
 			channel <- data
 		} ()
 	}
-	printEvent("keyboard", "leave", serial, surface)
+	printEvent("keyboard", k, "leave", serial, surface.Id())
 }
 
 type KeyboardKey struct {
@@ -190,7 +190,7 @@ func keyboard_key(k *Keyboard, msg []byte) {
 			channel <- data
 		} ()
 	}
-	printEvent("keyboard", "key", serial, time, key, state)
+	printEvent("keyboard", k, "key", serial, time, key, state)
 }
 
 type KeyboardModifiers struct {
@@ -244,7 +244,7 @@ func keyboard_modifiers(k *Keyboard, msg []byte) {
 			channel <- data
 		} ()
 	}
-	printEvent("keyboard", "modifiers", serial, mods_depressed, mods_latched, mods_locked, group)
+	printEvent("keyboard", k, "modifiers", serial, mods_depressed, mods_latched, mods_locked, group)
 }
 
 func NewKeyboard() (k *Keyboard) {

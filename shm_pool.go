@@ -19,14 +19,14 @@ func (s *ShmPool) CreateBuffer (id *Buffer, offset int32, width int32, height in
 	writeInteger(msg,format)
 
 	sendmsg(msg)
-	printRequest("shm_pool", "create_buffer", id, offset, width, height, stride, format)
+	printRequest("shm_pool", s, "create_buffer", "new id", id.Id(), offset, width, height, stride, format)
 }
 
 func (s *ShmPool) Destroy () {
 	msg := newMessage(s, 1)
 
 	sendmsg(msg)
-	printRequest("shm_pool", "destroy", )
+	printRequest("shm_pool", s, "destroy")
 }
 
 func (s *ShmPool) Resize (size int32) {
@@ -34,7 +34,7 @@ func (s *ShmPool) Resize (size int32) {
 	writeInteger(msg,size)
 
 	sendmsg(msg)
-	printRequest("shm_pool", "resize", size)
+	printRequest("shm_pool", s, "resize", size)
 }
 
 //// Events

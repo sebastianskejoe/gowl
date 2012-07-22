@@ -85,7 +85,7 @@ func touch_down(t *Touch, msg []byte) {
 			channel <- data
 		} ()
 	}
-	printEvent("touch", "down", serial, time, surface, id, x, y)
+	printEvent("touch", t, "down", serial, time, surface.Id(), id, x, y)
 }
 
 type TouchUp struct {
@@ -125,7 +125,7 @@ func touch_up(t *Touch, msg []byte) {
 			channel <- data
 		} ()
 	}
-	printEvent("touch", "up", serial, time, id)
+	printEvent("touch", t, "up", serial, time, id)
 }
 
 type TouchMotion struct {
@@ -172,7 +172,7 @@ func touch_motion(t *Touch, msg []byte) {
 			channel <- data
 		} ()
 	}
-	printEvent("touch", "motion", time, id, x, y)
+	printEvent("touch", t, "motion", time, id, x, y)
 }
 
 type TouchFrame struct {
@@ -190,7 +190,7 @@ func touch_frame(t *Touch, msg []byte) {
 			channel <- data
 		} ()
 	}
-	printEvent("touch", "frame", )
+	printEvent("touch", t, "frame")
 }
 
 type TouchCancel struct {
@@ -208,7 +208,7 @@ func touch_cancel(t *Touch, msg []byte) {
 			channel <- data
 		} ()
 	}
-	printEvent("touch", "cancel", )
+	printEvent("touch", t, "cancel")
 }
 
 func NewTouch() (t *Touch) {

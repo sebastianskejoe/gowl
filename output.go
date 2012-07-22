@@ -86,7 +86,7 @@ func output_geometry(o *Output, msg []byte) {
 			channel <- data
 		} ()
 	}
-	printEvent("output", "geometry", x, y, physical_width, physical_height, subpixel, make, model)
+	printEvent("output", o, "geometry", x, y, physical_width, physical_height, subpixel, make, model)
 }
 
 type OutputMode struct {
@@ -133,7 +133,7 @@ func output_mode(o *Output, msg []byte) {
 			channel <- data
 		} ()
 	}
-	printEvent("output", "mode", flags, width, height, refresh)
+	printEvent("output", o, "mode", flags, width, height, refresh)
 }
 
 func NewOutput() (o *Output) {

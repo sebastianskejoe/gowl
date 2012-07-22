@@ -23,7 +23,7 @@ func (d *Display) Bind (name uint32, iface string, version uint32, id Object) {
 	writeInteger(msg,id.Id())
 
 	sendmsg(msg)
-	printRequest("display", "bind", name, iface, version, id)
+	printRequest("display", d, "bind", name, iface, version, "new id", id.Id())
 }
 
 func (d *Display) Sync (callback *Callback) {
@@ -32,7 +32,7 @@ func (d *Display) Sync (callback *Callback) {
 	writeInteger(msg,callback.Id())
 
 	sendmsg(msg)
-	printRequest("display", "sync", callback)
+	printRequest("display", d, "sync", "new id", callback.Id())
 }
 
 //// Events
@@ -85,7 +85,7 @@ func display_error(d *Display, msg []byte) {
 			channel <- data
 		} ()
 	}
-	printEvent("display", "error", object_id, code, message)
+	printEvent("display", d, "error", object_id.Id(), code, message)
 }
 
 type DisplayGlobal struct {
@@ -125,7 +125,7 @@ func display_global(d *Display, msg []byte) {
 			channel <- data
 		} ()
 	}
-	printEvent("display", "global", name, iface, version)
+	printEvent("display", d, "global", name, iface, version)
 }
 
 type DisplayGlobalRemove struct {
@@ -151,7 +151,7 @@ func display_global_remove(d *Display, msg []byte) {
 			channel <- data
 		} ()
 	}
-	printEvent("display", "global_remove", name)
+	printEvent("display", d, "global_remove", name)
 }
 
 type DisplayDeleteId struct {
@@ -177,7 +177,7 @@ func display_delete_id(d *Display, msg []byte) {
 			channel <- data
 		} ()
 	}
-	printEvent("display", "delete_id", id)
+	printEvent("display", d, "delete_id", id)
 }
 
 func NewDisplay() (d *Display) {

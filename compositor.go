@@ -14,7 +14,7 @@ func (c *Compositor) CreateSurface (id *Surface) {
 	writeInteger(msg,id.Id())
 
 	sendmsg(msg)
-	printRequest("compositor", "create_surface", id)
+	printRequest("compositor", c, "create_surface", "new id", id.Id())
 }
 
 func (c *Compositor) CreateRegion (id *Region) {
@@ -23,7 +23,7 @@ func (c *Compositor) CreateRegion (id *Region) {
 	writeInteger(msg,id.Id())
 
 	sendmsg(msg)
-	printRequest("compositor", "create_region", id)
+	printRequest("compositor", c, "create_region", "new id", id.Id())
 }
 
 //// Events

@@ -18,7 +18,7 @@ func (b *Buffer) Destroy () {
 	msg := newMessage(b, 0)
 
 	sendmsg(msg)
-	printRequest("buffer", "destroy", )
+	printRequest("buffer", b, "destroy")
 }
 
 //// Events
@@ -43,7 +43,7 @@ func buffer_release(b *Buffer, msg []byte) {
 			channel <- data
 		} ()
 	}
-	printEvent("buffer", "release", )
+	printEvent("buffer", b, "release")
 }
 
 func NewBuffer() (b *Buffer) {

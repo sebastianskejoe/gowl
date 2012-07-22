@@ -22,7 +22,7 @@ func (s *Shm) CreatePool (id *ShmPool, fd uintptr, size int32) {
 	writeInteger(msg,size)
 
 	sendmsg(msg)
-	printRequest("shm", "create_pool", id, fd, size)
+	printRequest("shm", s, "create_pool", "new id", id.Id(), fd, size)
 }
 
 //// Events
@@ -55,7 +55,7 @@ func shm_format(s *Shm, msg []byte) {
 			channel <- data
 		} ()
 	}
-	printEvent("shm", "format", format)
+	printEvent("shm", s, "format", format)
 }
 
 func NewShm() (s *Shm) {

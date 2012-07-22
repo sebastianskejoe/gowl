@@ -18,7 +18,7 @@ func (s *Surface) Destroy () {
 	msg := newMessage(s, 0)
 
 	sendmsg(msg)
-	printRequest("surface", "destroy", )
+	printRequest("surface", s, "destroy")
 }
 
 func (s *Surface) Attach (buffer *Buffer, x int32, y int32) {
@@ -28,7 +28,7 @@ func (s *Surface) Attach (buffer *Buffer, x int32, y int32) {
 	writeInteger(msg,y)
 
 	sendmsg(msg)
-	printRequest("surface", "attach", buffer, x, y)
+	printRequest("surface", s, "attach", buffer.Id(), x, y)
 }
 
 func (s *Surface) Damage (x int32, y int32, width int32, height int32) {
@@ -39,7 +39,7 @@ func (s *Surface) Damage (x int32, y int32, width int32, height int32) {
 	writeInteger(msg,height)
 
 	sendmsg(msg)
-	printRequest("surface", "damage", x, y, width, height)
+	printRequest("surface", s, "damage", x, y, width, height)
 }
 
 func (s *Surface) Frame (callback *Callback) {
@@ -48,7 +48,7 @@ func (s *Surface) Frame (callback *Callback) {
 	writeInteger(msg,callback.Id())
 
 	sendmsg(msg)
-	printRequest("surface", "frame", callback)
+	printRequest("surface", s, "frame", "new id", callback.Id())
 }
 
 func (s *Surface) SetOpaqueRegion (region *Region) {
@@ -56,7 +56,7 @@ func (s *Surface) SetOpaqueRegion (region *Region) {
 	writeInteger(msg,region.Id())
 
 	sendmsg(msg)
-	printRequest("surface", "set_opaque_region", region)
+	printRequest("surface", s, "set_opaque_region", region.Id())
 }
 
 func (s *Surface) SetInputRegion (region *Region) {
@@ -64,7 +64,7 @@ func (s *Surface) SetInputRegion (region *Region) {
 	writeInteger(msg,region.Id())
 
 	sendmsg(msg)
-	printRequest("surface", "set_input_region", region)
+	printRequest("surface", s, "set_input_region", region.Id())
 }
 
 //// Events
@@ -103,7 +103,7 @@ func surface_enter(s *Surface, msg []byte) {
 			channel <- data
 		} ()
 	}
-	printEvent("surface", "enter", output)
+	printEvent("surface", s, "enter", output.Id())
 }
 
 type SurfaceLeave struct {
@@ -135,7 +135,7 @@ func surface_leave(s *Surface, msg []byte) {
 			channel <- data
 		} ()
 	}
-	printEvent("surface", "leave", output)
+	printEvent("surface", s, "leave", output.Id())
 }
 
 func NewSurface() (s *Surface) {

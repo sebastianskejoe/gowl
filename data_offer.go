@@ -20,7 +20,7 @@ func (d *DataOffer) Accept (serial uint32, typ string) {
 	writeString(msg,[]byte(typ))
 
 	sendmsg(msg)
-	printRequest("data_offer", "accept", serial, typ)
+	printRequest("data_offer", d, "accept", serial, typ)
 }
 
 func (d *DataOffer) Receive (mime_type string, fd uintptr) {
@@ -29,14 +29,14 @@ func (d *DataOffer) Receive (mime_type string, fd uintptr) {
 	writeFd(msg,fd)
 
 	sendmsg(msg)
-	printRequest("data_offer", "receive", mime_type, fd)
+	printRequest("data_offer", d, "receive", mime_type, fd)
 }
 
 func (d *DataOffer) Destroy () {
 	msg := newMessage(d, 2)
 
 	sendmsg(msg)
-	printRequest("data_offer", "destroy", )
+	printRequest("data_offer", d, "destroy")
 }
 
 //// Events
@@ -69,7 +69,7 @@ func data_offer_offer(d *DataOffer, msg []byte) {
 			channel <- data
 		} ()
 	}
-	printEvent("data_offer", "offer", typ)
+	printEvent("data_offer", d, "offer", typ)
 }
 
 func NewDataOffer() (d *DataOffer) {

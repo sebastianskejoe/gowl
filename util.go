@@ -62,12 +62,12 @@ func printError(f string, err error) {
 	fmt.Println(f,"produced an error:",err)
 }
 
-func printEvent(name string, event string, args ...interface{}) {
-	fmt.Printf("%s.%s { %v }\n",name,event,args)
+func printEvent(name string, obj Object, event string, args ...interface{}) {
+	fmt.Printf("%s@%d.%s { %v }\n",name,obj.Id(),event,args)
 }
 
-func printRequest(name string, req string, args ...interface{}) {
-	fmt.Printf(" -> %s.%s { %v }\n",name,req,args)
+func printRequest(name string, obj Object, req string, args ...interface{}) {
+	fmt.Printf(" -> %s@%d.%s { %v }\n",name,obj.Id(),req,args)
 }
 
 func delete_id_listener(c chan interface{}) {

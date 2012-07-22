@@ -44,7 +44,7 @@ func callback_done(c *Callback, msg []byte) {
 			channel <- data
 		} ()
 	}
-	printEvent("callback", "done", serial)
+	printEvent("callback", c, "done", serial)
 }
 
 func NewCallback() (c *Callback) {

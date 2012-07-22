@@ -22,7 +22,7 @@ func (d *DataDevice) StartDrag (source *DataSource, origin *Surface, icon *Surfa
 	writeInteger(msg,serial)
 
 	sendmsg(msg)
-	printRequest("data_device", "start_drag", source, origin, icon, serial)
+	printRequest("data_device", d, "start_drag", source.Id(), origin.Id(), icon.Id(), serial)
 }
 
 func (d *DataDevice) SetSelection (source *DataSource, serial uint32) {
@@ -31,7 +31,7 @@ func (d *DataDevice) SetSelection (source *DataSource, serial uint32) {
 	writeInteger(msg,serial)
 
 	sendmsg(msg)
-	printRequest("data_device", "set_selection", source, serial)
+	printRequest("data_device", d, "set_selection", source.Id(), serial)
 }
 
 //// Events
@@ -66,7 +66,7 @@ func data_device_data_offer(d *DataDevice, msg []byte) {
 			channel <- data
 		} ()
 	}
-	printEvent("data_device", "data_offer", id)
+	printEvent("data_device", d, "data_offer", "new id", id.Id())
 }
 
 type DataDeviceEnter struct {
@@ -132,7 +132,7 @@ func data_device_enter(d *DataDevice, msg []byte) {
 			channel <- data
 		} ()
 	}
-	printEvent("data_device", "enter", serial, surface, x, y, id)
+	printEvent("data_device", d, "enter", serial, surface.Id(), x, y, id.Id())
 }
 
 type DataDeviceLeave struct {
@@ -150,7 +150,7 @@ func data_device_leave(d *DataDevice, msg []byte) {
 			channel <- data
 		} ()
 	}
-	printEvent("data_device", "leave", )
+	printEvent("data_device", d, "leave")
 }
 
 type DataDeviceMotion struct {
@@ -190,7 +190,7 @@ func data_device_motion(d *DataDevice, msg []byte) {
 			channel <- data
 		} ()
 	}
-	printEvent("data_device", "motion", time, x, y)
+	printEvent("data_device", d, "motion", time, x, y)
 }
 
 type DataDeviceDrop struct {
@@ -208,7 +208,7 @@ func data_device_drop(d *DataDevice, msg []byte) {
 			channel <- data
 		} ()
 	}
-	printEvent("data_device", "drop", )
+	printEvent("data_device", d, "drop")
 }
 
 type DataDeviceSelection struct {
@@ -240,7 +240,7 @@ func data_device_selection(d *DataDevice, msg []byte) {
 			channel <- data
 		} ()
 	}
-	printEvent("data_device", "selection", id)
+	printEvent("data_device", d, "selection", id.Id())
 }
 
 func NewDataDevice() (d *DataDevice) {

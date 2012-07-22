@@ -15,7 +15,7 @@ func (s *Shell) GetShellSurface (id *ShellSurface, surface *Surface) {
 	writeInteger(msg,surface.Id())
 
 	sendmsg(msg)
-	printRequest("shell", "get_shell_surface", id, surface)
+	printRequest("shell", s, "get_shell_surface", "new id", id.Id(), surface.Id())
 }
 
 //// Events
