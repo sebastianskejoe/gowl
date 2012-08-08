@@ -10,7 +10,7 @@ type DataOffer struct {
 //	*WlObject
 	id int32
 	listeners map[int16][]chan interface{}
-	events []func (d *DataOffer, msg []byte)
+	events []func (d *DataOffer, msg message)
 }
 
 //// Requests
@@ -40,9 +40,9 @@ func (d *DataOffer) Destroy () {
 }
 
 //// Events
-func (d *DataOffer) HandleEvent(opcode int16, msg []byte) {
-	if d.events[opcode] != nil {
-		d.events[opcode](d, msg)
+func (d *DataOffer) HandleEvent(msg message) {
+	if d.events[msg.opcode] != nil {
+		d.events[msg.opcode](d, msg)
 	}
 }
 
@@ -52,13 +52,13 @@ type DataOfferOffer struct {
 
 func (d *DataOffer) AddOfferListener(channel chan interface{}) {
 	d.listeners[0] = append(d.listeners[0], channel)
+	addListener(channel)
 }
 
-func data_offer_offer(d *DataOffer, msg []byte) {
+func data_offer_offer(d *DataOffer, msg message) {
 	var data DataOfferOffer
-	buf := bytes.NewBuffer(msg)
 
-	_,typ,err := readString(buf)
+	_,typ,err := readString(msg.buf)
 	if err != nil {
 		// XXX Error handling
 	}

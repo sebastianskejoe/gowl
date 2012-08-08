@@ -10,7 +10,7 @@ type Seat struct {
 //	*WlObject
 	id int32
 	listeners map[int16][]chan interface{}
-	events []func (s *Seat, msg []byte)
+	events []func (s *Seat, msg message)
 }
 
 //// Requests
@@ -42,9 +42,9 @@ func (s *Seat) GetTouch (id *Touch) {
 }
 
 //// Events
-func (s *Seat) HandleEvent(opcode int16, msg []byte) {
-	if s.events[opcode] != nil {
-		s.events[opcode](s, msg)
+func (s *Seat) HandleEvent(msg message) {
+	if s.events[msg.opcode] != nil {
+		s.events[msg.opcode](s, msg)
 	}
 }
 
@@ -54,13 +54,13 @@ type SeatCapabilities struct {
 
 func (s *Seat) AddCapabilitiesListener(channel chan interface{}) {
 	s.listeners[0] = append(s.listeners[0], channel)
+	addListener(channel)
 }
 
-func seat_capabilities(s *Seat, msg []byte) {
+func seat_capabilities(s *Seat, msg message) {
 	var data SeatCapabilities
-	buf := bytes.NewBuffer(msg)
 
-	capabilities,err := readUint32(buf)
+	capabilities,err := readUint32(msg.buf)
 	if err != nil {
 		// XXX Error handling
 	}

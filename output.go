@@ -10,14 +10,14 @@ type Output struct {
 //	*WlObject
 	id int32
 	listeners map[int16][]chan interface{}
-	events []func (o *Output, msg []byte)
+	events []func (o *Output, msg message)
 }
 
 //// Requests
 //// Events
-func (o *Output) HandleEvent(opcode int16, msg []byte) {
-	if o.events[opcode] != nil {
-		o.events[opcode](o, msg)
+func (o *Output) HandleEvent(msg message) {
+	if o.events[msg.opcode] != nil {
+		o.events[msg.opcode](o, msg)
 	}
 }
 
@@ -33,49 +33,49 @@ type OutputGeometry struct {
 
 func (o *Output) AddGeometryListener(channel chan interface{}) {
 	o.listeners[0] = append(o.listeners[0], channel)
+	addListener(channel)
 }
 
-func output_geometry(o *Output, msg []byte) {
+func output_geometry(o *Output, msg message) {
 	var data OutputGeometry
-	buf := bytes.NewBuffer(msg)
 
-	x,err := readInt32(buf)
+	x,err := readInt32(msg.buf)
 	if err != nil {
 		// XXX Error handling
 	}
 	data.X = x
 
-	y,err := readInt32(buf)
+	y,err := readInt32(msg.buf)
 	if err != nil {
 		// XXX Error handling
 	}
 	data.Y = y
 
-	physical_width,err := readInt32(buf)
+	physical_width,err := readInt32(msg.buf)
 	if err != nil {
 		// XXX Error handling
 	}
 	data.PhysicalWidth = physical_width
 
-	physical_height,err := readInt32(buf)
+	physical_height,err := readInt32(msg.buf)
 	if err != nil {
 		// XXX Error handling
 	}
 	data.PhysicalHeight = physical_height
 
-	subpixel,err := readInt32(buf)
+	subpixel,err := readInt32(msg.buf)
 	if err != nil {
 		// XXX Error handling
 	}
 	data.Subpixel = subpixel
 
-	_,make,err := readString(buf)
+	_,make,err := readString(msg.buf)
 	if err != nil {
 		// XXX Error handling
 	}
 	data.Make = make
 
-	_,model,err := readString(buf)
+	_,model,err := readString(msg.buf)
 	if err != nil {
 		// XXX Error handling
 	}
@@ -98,31 +98,31 @@ type OutputMode struct {
 
 func (o *Output) AddModeListener(channel chan interface{}) {
 	o.listeners[1] = append(o.listeners[1], channel)
+	addListener(channel)
 }
 
-func output_mode(o *Output, msg []byte) {
+func output_mode(o *Output, msg message) {
 	var data OutputMode
-	buf := bytes.NewBuffer(msg)
 
-	flags,err := readUint32(buf)
+	flags,err := readUint32(msg.buf)
 	if err != nil {
 		// XXX Error handling
 	}
 	data.Flags = flags
 
-	width,err := readInt32(buf)
+	width,err := readInt32(msg.buf)
 	if err != nil {
 		// XXX Error handling
 	}
 	data.Width = width
 
-	height,err := readInt32(buf)
+	height,err := readInt32(msg.buf)
 	if err != nil {
 		// XXX Error handling
 	}
 	data.Height = height
 
-	refresh,err := readInt32(buf)
+	refresh,err := readInt32(msg.buf)
 	if err != nil {
 		// XXX Error handling
 	}

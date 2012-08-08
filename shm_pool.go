@@ -4,7 +4,7 @@ type ShmPool struct {
 //	*WlObject
 	id int32
 	listeners map[int16][]chan interface{}
-	events []func (s *ShmPool, msg []byte)
+	events []func (s *ShmPool, msg message)
 }
 
 //// Requests
@@ -38,9 +38,9 @@ func (s *ShmPool) Resize (size int32) {
 }
 
 //// Events
-func (s *ShmPool) HandleEvent(opcode int16, msg []byte) {
-	if s.events[opcode] != nil {
-		s.events[opcode](s, msg)
+func (s *ShmPool) HandleEvent(msg message) {
+	if s.events[msg.opcode] != nil {
+		s.events[msg.opcode](s, msg)
 	}
 }
 

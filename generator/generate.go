@@ -218,7 +218,7 @@ type %s struct {
 //	*WlObject
 	id int32
 	listeners map[int16][]chan interface{}
-	events []func (%s *%s, msg []byte)
+	events []func (%s *%s, msg message)
 }
 
 //// Requests`, tiname, vname, tiname))
@@ -281,9 +281,9 @@ func (%s *%s) %s (%s) {`, vname, tiname, makeInterfaceName(req.name), argstr))
 	// HandleEvent
 	buf.WriteString(fmt.Sprintf(`
 //// Events
-func (%s *%s) HandleEvent(opcode int16, msg []byte) {
-	if %s.events[opcode] != nil {
-		%s.events[opcode](%s, msg)
+func (%s *%s) HandleEvent(msg message) {
+	if %s.events[msg.opcode] != nil {
+		%s.events[msg.opcode](%s, msg)
 	}
 }
 `, vname, tiname, vname, vname, vname))
@@ -305,6 +305,7 @@ type %s%s struct {`, tiname, makeInterfaceName(ev.name)))
 
 func (%s *%s) Add%sListener(channel chan interface{}) {
 	%s.listeners[%d] = append(%s.listeners[%d], channel)
+	addListener(channel)
 }
 `, vname, tiname, makeInterfaceName(ev.name), vname, opcode, vname, opcode))
 
@@ -325,13 +326,13 @@ func (%s *%s) Add%sListener(channel chan interface{}) {
 		argstr := strings.Join(argstrs, ", ")
 
 		buf.WriteString(fmt.Sprintf(`
-func %s_%s(%s *%s, msg []byte) {
+func %s_%s(%s *%s, msg message) {
 	var data %s%s
 `, iname, ev.name, vname, tiname, tiname, makeInterfaceName(ev.name)))
-		if len(ev.args) > 0 {
-			buf.WriteString(`	buf := bytes.NewBuffer(msg)
-`)
-		}
+//		if len(ev.args) > 0 {
+//			buf.WriteString(`	buf := bytes.NewBuffer(msg)
+//
+//		}
 		// Func body
 		for _, arg := range ev.args {
 			name := fixVarName(arg.name)
@@ -347,7 +348,7 @@ func %s_%s(%s *%s, msg []byte) {
 			case "object":
 				obj = "old"
 			case "fd":
-				fname = "readUintptr"
+				obj = "fd"
 			case "new_id":
 				obj = "new"
 			case "string":
@@ -359,11 +360,15 @@ func %s_%s(%s *%s, msg []byte) {
 				fname = "unknownRead"
 			}
 
+            // This is a file descriptor
+            if obj == "fd" {
+                buf.WriteString(fmt.Sprintf(`
+    %s := msg.fd
+`, name))
 			// If it is an object we need to do some other stuff
-			if obj != "not" {
-
+            } else if obj != "not" {
 				buf.WriteString(fmt.Sprintf(`
-	%sid, err := readInt32(buf)
+	%sid, err := readInt32(msg.buf)
 	if err != nil {
 		// XXX Error handling
 	}`, name))
@@ -387,19 +392,22 @@ func %s_%s(%s *%s, msg []byte) {
 	%s = %sobj.(%s)
 `, name, name, name, name, name, getType(arg.t, arg.iface)))
 				// This is a new object
-				} else {
+				} else if obj == "new" {
 					buf.WriteString(fmt.Sprintf(`
 	setObject(%sid, %s)
 `, name, name))
 				}
+
+            // Just a regular value
 			} else {
 				buf.WriteString(fmt.Sprintf(`
-	%s,err := %s(buf)
+	%s,err := %s(msg.buf)
 	if err != nil {
 		// XXX Error handling
 	}
 `, name, fname))
 			}
+
 			buf.WriteString(fmt.Sprintf(`	data.%s = %s
 `, makeInterfaceName(fixVarName(arg.name)), fixVarName(arg.name)))
 		}

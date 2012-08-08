@@ -4,7 +4,7 @@ type Compositor struct {
 //	*WlObject
 	id int32
 	listeners map[int16][]chan interface{}
-	events []func (c *Compositor, msg []byte)
+	events []func (c *Compositor, msg message)
 }
 
 //// Requests
@@ -27,9 +27,9 @@ func (c *Compositor) CreateRegion (id *Region) {
 }
 
 //// Events
-func (c *Compositor) HandleEvent(opcode int16, msg []byte) {
-	if c.events[opcode] != nil {
-		c.events[opcode](c, msg)
+func (c *Compositor) HandleEvent(msg message) {
+	if c.events[msg.opcode] != nil {
+		c.events[msg.opcode](c, msg)
 	}
 }
 

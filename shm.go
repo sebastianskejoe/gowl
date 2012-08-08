@@ -10,7 +10,7 @@ type Shm struct {
 //	*WlObject
 	id int32
 	listeners map[int16][]chan interface{}
-	events []func (s *Shm, msg []byte)
+	events []func (s *Shm, msg message)
 }
 
 //// Requests
@@ -26,9 +26,9 @@ func (s *Shm) CreatePool (id *ShmPool, fd uintptr, size int32) {
 }
 
 //// Events
-func (s *Shm) HandleEvent(opcode int16, msg []byte) {
-	if s.events[opcode] != nil {
-		s.events[opcode](s, msg)
+func (s *Shm) HandleEvent(msg message) {
+	if s.events[msg.opcode] != nil {
+		s.events[msg.opcode](s, msg)
 	}
 }
 
@@ -38,13 +38,13 @@ type ShmFormat struct {
 
 func (s *Shm) AddFormatListener(channel chan interface{}) {
 	s.listeners[0] = append(s.listeners[0], channel)
+	addListener(channel)
 }
 
-func shm_format(s *Shm, msg []byte) {
+func shm_format(s *Shm, msg message) {
 	var data ShmFormat
-	buf := bytes.NewBuffer(msg)
 
-	format,err := readUint32(buf)
+	format,err := readUint32(msg.buf)
 	if err != nil {
 		// XXX Error handling
 	}

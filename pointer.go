@@ -10,7 +10,7 @@ type Pointer struct {
 //	*WlObject
 	id int32
 	listeners map[int16][]chan interface{}
-	events []func (p *Pointer, msg []byte)
+	events []func (p *Pointer, msg message)
 }
 
 //// Requests
@@ -26,9 +26,9 @@ func (p *Pointer) SetCursor (serial uint32, surface *Surface, hotspot_x int32, h
 }
 
 //// Events
-func (p *Pointer) HandleEvent(opcode int16, msg []byte) {
-	if p.events[opcode] != nil {
-		p.events[opcode](p, msg)
+func (p *Pointer) HandleEvent(msg message) {
+	if p.events[msg.opcode] != nil {
+		p.events[msg.opcode](p, msg)
 	}
 }
 
@@ -41,19 +41,19 @@ type PointerEnter struct {
 
 func (p *Pointer) AddEnterListener(channel chan interface{}) {
 	p.listeners[0] = append(p.listeners[0], channel)
+	addListener(channel)
 }
 
-func pointer_enter(p *Pointer, msg []byte) {
+func pointer_enter(p *Pointer, msg message) {
 	var data PointerEnter
-	buf := bytes.NewBuffer(msg)
 
-	serial,err := readUint32(buf)
+	serial,err := readUint32(msg.buf)
 	if err != nil {
 		// XXX Error handling
 	}
 	data.Serial = serial
 
-	surfaceid, err := readInt32(buf)
+	surfaceid, err := readInt32(msg.buf)
 	if err != nil {
 		// XXX Error handling
 	}
@@ -65,13 +65,13 @@ func pointer_enter(p *Pointer, msg []byte) {
 	surface = surfaceobj.(*Surface)
 	data.Surface = surface
 
-	surface_x,err := readFixed(buf)
+	surface_x,err := readFixed(msg.buf)
 	if err != nil {
 		// XXX Error handling
 	}
 	data.SurfaceX = surface_x
 
-	surface_y,err := readFixed(buf)
+	surface_y,err := readFixed(msg.buf)
 	if err != nil {
 		// XXX Error handling
 	}
@@ -92,19 +92,19 @@ type PointerLeave struct {
 
 func (p *Pointer) AddLeaveListener(channel chan interface{}) {
 	p.listeners[1] = append(p.listeners[1], channel)
+	addListener(channel)
 }
 
-func pointer_leave(p *Pointer, msg []byte) {
+func pointer_leave(p *Pointer, msg message) {
 	var data PointerLeave
-	buf := bytes.NewBuffer(msg)
 
-	serial,err := readUint32(buf)
+	serial,err := readUint32(msg.buf)
 	if err != nil {
 		// XXX Error handling
 	}
 	data.Serial = serial
 
-	surfaceid, err := readInt32(buf)
+	surfaceid, err := readInt32(msg.buf)
 	if err != nil {
 		// XXX Error handling
 	}
@@ -132,25 +132,25 @@ type PointerMotion struct {
 
 func (p *Pointer) AddMotionListener(channel chan interface{}) {
 	p.listeners[2] = append(p.listeners[2], channel)
+	addListener(channel)
 }
 
-func pointer_motion(p *Pointer, msg []byte) {
+func pointer_motion(p *Pointer, msg message) {
 	var data PointerMotion
-	buf := bytes.NewBuffer(msg)
 
-	time,err := readUint32(buf)
+	time,err := readUint32(msg.buf)
 	if err != nil {
 		// XXX Error handling
 	}
 	data.Time = time
 
-	surface_x,err := readFixed(buf)
+	surface_x,err := readFixed(msg.buf)
 	if err != nil {
 		// XXX Error handling
 	}
 	data.SurfaceX = surface_x
 
-	surface_y,err := readFixed(buf)
+	surface_y,err := readFixed(msg.buf)
 	if err != nil {
 		// XXX Error handling
 	}
@@ -173,31 +173,31 @@ type PointerButton struct {
 
 func (p *Pointer) AddButtonListener(channel chan interface{}) {
 	p.listeners[3] = append(p.listeners[3], channel)
+	addListener(channel)
 }
 
-func pointer_button(p *Pointer, msg []byte) {
+func pointer_button(p *Pointer, msg message) {
 	var data PointerButton
-	buf := bytes.NewBuffer(msg)
 
-	serial,err := readUint32(buf)
+	serial,err := readUint32(msg.buf)
 	if err != nil {
 		// XXX Error handling
 	}
 	data.Serial = serial
 
-	time,err := readUint32(buf)
+	time,err := readUint32(msg.buf)
 	if err != nil {
 		// XXX Error handling
 	}
 	data.Time = time
 
-	button,err := readUint32(buf)
+	button,err := readUint32(msg.buf)
 	if err != nil {
 		// XXX Error handling
 	}
 	data.Button = button
 
-	state,err := readUint32(buf)
+	state,err := readUint32(msg.buf)
 	if err != nil {
 		// XXX Error handling
 	}
@@ -219,25 +219,25 @@ type PointerAxis struct {
 
 func (p *Pointer) AddAxisListener(channel chan interface{}) {
 	p.listeners[4] = append(p.listeners[4], channel)
+	addListener(channel)
 }
 
-func pointer_axis(p *Pointer, msg []byte) {
+func pointer_axis(p *Pointer, msg message) {
 	var data PointerAxis
-	buf := bytes.NewBuffer(msg)
 
-	time,err := readUint32(buf)
+	time,err := readUint32(msg.buf)
 	if err != nil {
 		// XXX Error handling
 	}
 	data.Time = time
 
-	axis,err := readUint32(buf)
+	axis,err := readUint32(msg.buf)
 	if err != nil {
 		// XXX Error handling
 	}
 	data.Axis = axis
 
-	value,err := readFixed(buf)
+	value,err := readFixed(msg.buf)
 	if err != nil {
 		// XXX Error handling
 	}

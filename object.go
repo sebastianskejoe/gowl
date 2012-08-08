@@ -18,7 +18,7 @@ func (obj *WlObject) addListener(opcode int16, c chan interface{}) {
 }
 
 type Object interface {
-	HandleEvent(opcode int16, msg []byte)
+	HandleEvent(msg message)
 	SetId(id int32)
 	Id() int32
 }

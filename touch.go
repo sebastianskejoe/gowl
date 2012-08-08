@@ -10,14 +10,14 @@ type Touch struct {
 //	*WlObject
 	id int32
 	listeners map[int16][]chan interface{}
-	events []func (t *Touch, msg []byte)
+	events []func (t *Touch, msg message)
 }
 
 //// Requests
 //// Events
-func (t *Touch) HandleEvent(opcode int16, msg []byte) {
-	if t.events[opcode] != nil {
-		t.events[opcode](t, msg)
+func (t *Touch) HandleEvent(msg message) {
+	if t.events[msg.opcode] != nil {
+		t.events[msg.opcode](t, msg)
 	}
 }
 
@@ -32,25 +32,25 @@ type TouchDown struct {
 
 func (t *Touch) AddDownListener(channel chan interface{}) {
 	t.listeners[0] = append(t.listeners[0], channel)
+	addListener(channel)
 }
 
-func touch_down(t *Touch, msg []byte) {
+func touch_down(t *Touch, msg message) {
 	var data TouchDown
-	buf := bytes.NewBuffer(msg)
 
-	serial,err := readUint32(buf)
+	serial,err := readUint32(msg.buf)
 	if err != nil {
 		// XXX Error handling
 	}
 	data.Serial = serial
 
-	time,err := readUint32(buf)
+	time,err := readUint32(msg.buf)
 	if err != nil {
 		// XXX Error handling
 	}
 	data.Time = time
 
-	surfaceid, err := readInt32(buf)
+	surfaceid, err := readInt32(msg.buf)
 	if err != nil {
 		// XXX Error handling
 	}
@@ -62,19 +62,19 @@ func touch_down(t *Touch, msg []byte) {
 	surface = surfaceobj.(*Surface)
 	data.Surface = surface
 
-	id,err := readInt32(buf)
+	id,err := readInt32(msg.buf)
 	if err != nil {
 		// XXX Error handling
 	}
 	data.Id = id
 
-	x,err := readFixed(buf)
+	x,err := readFixed(msg.buf)
 	if err != nil {
 		// XXX Error handling
 	}
 	data.X = x
 
-	y,err := readFixed(buf)
+	y,err := readFixed(msg.buf)
 	if err != nil {
 		// XXX Error handling
 	}
@@ -96,25 +96,25 @@ type TouchUp struct {
 
 func (t *Touch) AddUpListener(channel chan interface{}) {
 	t.listeners[1] = append(t.listeners[1], channel)
+	addListener(channel)
 }
 
-func touch_up(t *Touch, msg []byte) {
+func touch_up(t *Touch, msg message) {
 	var data TouchUp
-	buf := bytes.NewBuffer(msg)
 
-	serial,err := readUint32(buf)
+	serial,err := readUint32(msg.buf)
 	if err != nil {
 		// XXX Error handling
 	}
 	data.Serial = serial
 
-	time,err := readUint32(buf)
+	time,err := readUint32(msg.buf)
 	if err != nil {
 		// XXX Error handling
 	}
 	data.Time = time
 
-	id,err := readInt32(buf)
+	id,err := readInt32(msg.buf)
 	if err != nil {
 		// XXX Error handling
 	}
@@ -137,31 +137,31 @@ type TouchMotion struct {
 
 func (t *Touch) AddMotionListener(channel chan interface{}) {
 	t.listeners[2] = append(t.listeners[2], channel)
+	addListener(channel)
 }
 
-func touch_motion(t *Touch, msg []byte) {
+func touch_motion(t *Touch, msg message) {
 	var data TouchMotion
-	buf := bytes.NewBuffer(msg)
 
-	time,err := readUint32(buf)
+	time,err := readUint32(msg.buf)
 	if err != nil {
 		// XXX Error handling
 	}
 	data.Time = time
 
-	id,err := readInt32(buf)
+	id,err := readInt32(msg.buf)
 	if err != nil {
 		// XXX Error handling
 	}
 	data.Id = id
 
-	x,err := readFixed(buf)
+	x,err := readFixed(msg.buf)
 	if err != nil {
 		// XXX Error handling
 	}
 	data.X = x
 
-	y,err := readFixed(buf)
+	y,err := readFixed(msg.buf)
 	if err != nil {
 		// XXX Error handling
 	}
@@ -180,9 +180,10 @@ type TouchFrame struct {
 
 func (t *Touch) AddFrameListener(channel chan interface{}) {
 	t.listeners[3] = append(t.listeners[3], channel)
+	addListener(channel)
 }
 
-func touch_frame(t *Touch, msg []byte) {
+func touch_frame(t *Touch, msg message) {
 	var data TouchFrame
 
 	for _,channel := range t.listeners[3] {
@@ -198,9 +199,10 @@ type TouchCancel struct {
 
 func (t *Touch) AddCancelListener(channel chan interface{}) {
 	t.listeners[4] = append(t.listeners[4], channel)
+	addListener(channel)
 }
 
-func touch_cancel(t *Touch, msg []byte) {
+func touch_cancel(t *Touch, msg message) {
 	var data TouchCancel
 
 	for _,channel := range t.listeners[4] {

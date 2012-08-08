@@ -10,7 +10,7 @@ type Display struct {
 //	*WlObject
 	id int32
 	listeners map[int16][]chan interface{}
-	events []func (d *Display, msg []byte)
+	events []func (d *Display, msg message)
 }
 
 //// Requests
@@ -36,9 +36,9 @@ func (d *Display) Sync (callback *Callback) {
 }
 
 //// Events
-func (d *Display) HandleEvent(opcode int16, msg []byte) {
-	if d.events[opcode] != nil {
-		d.events[opcode](d, msg)
+func (d *Display) HandleEvent(msg message) {
+	if d.events[msg.opcode] != nil {
+		d.events[msg.opcode](d, msg)
 	}
 }
 
@@ -50,13 +50,13 @@ type DisplayError struct {
 
 func (d *Display) AddErrorListener(channel chan interface{}) {
 	d.listeners[0] = append(d.listeners[0], channel)
+	addListener(channel)
 }
 
-func display_error(d *Display, msg []byte) {
+func display_error(d *Display, msg message) {
 	var data DisplayError
-	buf := bytes.NewBuffer(msg)
 
-	object_idid, err := readInt32(buf)
+	object_idid, err := readInt32(msg.buf)
 	if err != nil {
 		// XXX Error handling
 	}
@@ -68,13 +68,13 @@ func display_error(d *Display, msg []byte) {
 	object_id = object_idobj.(Object)
 	data.ObjectId = object_id
 
-	code,err := readUint32(buf)
+	code,err := readUint32(msg.buf)
 	if err != nil {
 		// XXX Error handling
 	}
 	data.Code = code
 
-	_,message,err := readString(buf)
+	_,message,err := readString(msg.buf)
 	if err != nil {
 		// XXX Error handling
 	}
@@ -96,25 +96,25 @@ type DisplayGlobal struct {
 
 func (d *Display) AddGlobalListener(channel chan interface{}) {
 	d.listeners[1] = append(d.listeners[1], channel)
+	addListener(channel)
 }
 
-func display_global(d *Display, msg []byte) {
+func display_global(d *Display, msg message) {
 	var data DisplayGlobal
-	buf := bytes.NewBuffer(msg)
 
-	name,err := readUint32(buf)
+	name,err := readUint32(msg.buf)
 	if err != nil {
 		// XXX Error handling
 	}
 	data.Name = name
 
-	_,iface,err := readString(buf)
+	_,iface,err := readString(msg.buf)
 	if err != nil {
 		// XXX Error handling
 	}
 	data.Iface = iface
 
-	version,err := readUint32(buf)
+	version,err := readUint32(msg.buf)
 	if err != nil {
 		// XXX Error handling
 	}
@@ -134,13 +134,13 @@ type DisplayGlobalRemove struct {
 
 func (d *Display) AddGlobalRemoveListener(channel chan interface{}) {
 	d.listeners[2] = append(d.listeners[2], channel)
+	addListener(channel)
 }
 
-func display_global_remove(d *Display, msg []byte) {
+func display_global_remove(d *Display, msg message) {
 	var data DisplayGlobalRemove
-	buf := bytes.NewBuffer(msg)
 
-	name,err := readUint32(buf)
+	name,err := readUint32(msg.buf)
 	if err != nil {
 		// XXX Error handling
 	}
@@ -160,13 +160,13 @@ type DisplayDeleteId struct {
 
 func (d *Display) AddDeleteIdListener(channel chan interface{}) {
 	d.listeners[3] = append(d.listeners[3], channel)
+	addListener(channel)
 }
 
-func display_delete_id(d *Display, msg []byte) {
+func display_delete_id(d *Display, msg message) {
 	var data DisplayDeleteId
-	buf := bytes.NewBuffer(msg)
 
-	id,err := readUint32(buf)
+	id,err := readUint32(msg.buf)
 	if err != nil {
 		// XXX Error handling
 	}

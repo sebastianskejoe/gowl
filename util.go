@@ -4,12 +4,15 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+//    "io"
 )
 
 var objects map[int32]Object
 var freeIds []int32
 var idchan chan int32
 var nextid int32
+
+var listeners []chan interface{}
 
 func init() {
 	objects = make(map[int32]Object)
@@ -54,6 +57,10 @@ func removeObject(id int32) {
 	freeIds = append(freeIds, id)
 }
 
+func addListener(c chan interface{}) {
+	listeners = append(listeners, c)
+}
+
 func PrintObject(id int32) {
 	fmt.Printf("Object id is %d\n", objects[id].Id())
 }
@@ -70,6 +77,7 @@ func printRequest(name string, obj Object, req string, args ...interface{}) {
 	fmt.Printf(" -> %s@%d.%s { %v }\n",name,obj.Id(),req,args)
 }
 
+// Display funcs
 func delete_id_listener(c chan interface{}) {
 	for e := range c {
 		ev := e.(DisplayDeleteId)
@@ -85,19 +93,13 @@ func error_listener(c chan interface{}) {
 }
 
 func (d *Display) Iterate() error {
-	for {
-		id, opcode, _, msg, remain, err := getmsg()
-		if err != nil {
-			return err
-		}
-		obj := getObject(id)
-		if obj != nil {
-			obj.HandleEvent(opcode, msg)
-		}
+    msgs,err := getmsg()
+    if err != nil {
+        return err
+    }
 
-		if remain == 0 {
-			break
-		}
+    for _,msg := range msgs {
+		msg.obj.HandleEvent(msg)
 	}
 	return nil
 }
@@ -116,6 +118,12 @@ func (d *Display) Connect() error {
 	go delete_id_listener(delchan)
 	go error_listener(errchan)
 	return nil
+}
+
+func (d *Display) Close() {
+	for _,c := range listeners {
+		close(c)
+	}
 }
 
 func CreateTmp(size int64) (uintptr) {

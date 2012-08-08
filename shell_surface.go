@@ -10,7 +10,7 @@ type ShellSurface struct {
 //	*WlObject
 	id int32
 	listeners map[int16][]chan interface{}
-	events []func (s *ShellSurface, msg []byte)
+	events []func (s *ShellSurface, msg message)
 }
 
 //// Requests
@@ -107,9 +107,9 @@ func (s *ShellSurface) SetClass (class_ string) {
 }
 
 //// Events
-func (s *ShellSurface) HandleEvent(opcode int16, msg []byte) {
-	if s.events[opcode] != nil {
-		s.events[opcode](s, msg)
+func (s *ShellSurface) HandleEvent(msg message) {
+	if s.events[msg.opcode] != nil {
+		s.events[msg.opcode](s, msg)
 	}
 }
 
@@ -119,13 +119,13 @@ type ShellSurfacePing struct {
 
 func (s *ShellSurface) AddPingListener(channel chan interface{}) {
 	s.listeners[0] = append(s.listeners[0], channel)
+	addListener(channel)
 }
 
-func shell_surface_ping(s *ShellSurface, msg []byte) {
+func shell_surface_ping(s *ShellSurface, msg message) {
 	var data ShellSurfacePing
-	buf := bytes.NewBuffer(msg)
 
-	serial,err := readUint32(buf)
+	serial,err := readUint32(msg.buf)
 	if err != nil {
 		// XXX Error handling
 	}
@@ -147,25 +147,25 @@ type ShellSurfaceConfigure struct {
 
 func (s *ShellSurface) AddConfigureListener(channel chan interface{}) {
 	s.listeners[1] = append(s.listeners[1], channel)
+	addListener(channel)
 }
 
-func shell_surface_configure(s *ShellSurface, msg []byte) {
+func shell_surface_configure(s *ShellSurface, msg message) {
 	var data ShellSurfaceConfigure
-	buf := bytes.NewBuffer(msg)
 
-	edges,err := readUint32(buf)
+	edges,err := readUint32(msg.buf)
 	if err != nil {
 		// XXX Error handling
 	}
 	data.Edges = edges
 
-	width,err := readInt32(buf)
+	width,err := readInt32(msg.buf)
 	if err != nil {
 		// XXX Error handling
 	}
 	data.Width = width
 
-	height,err := readInt32(buf)
+	height,err := readInt32(msg.buf)
 	if err != nil {
 		// XXX Error handling
 	}
@@ -184,9 +184,10 @@ type ShellSurfacePopupDone struct {
 
 func (s *ShellSurface) AddPopupDoneListener(channel chan interface{}) {
 	s.listeners[2] = append(s.listeners[2], channel)
+	addListener(channel)
 }
 
-func shell_surface_popup_done(s *ShellSurface, msg []byte) {
+func shell_surface_popup_done(s *ShellSurface, msg message) {
 	var data ShellSurfacePopupDone
 
 	for _,channel := range s.listeners[2] {

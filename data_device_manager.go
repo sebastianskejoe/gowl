@@ -4,7 +4,7 @@ type DataDeviceManager struct {
 //	*WlObject
 	id int32
 	listeners map[int16][]chan interface{}
-	events []func (d *DataDeviceManager, msg []byte)
+	events []func (d *DataDeviceManager, msg message)
 }
 
 //// Requests
@@ -28,9 +28,9 @@ func (d *DataDeviceManager) GetDataDevice (id *DataDevice, seat *Seat) {
 }
 
 //// Events
-func (d *DataDeviceManager) HandleEvent(opcode int16, msg []byte) {
-	if d.events[opcode] != nil {
-		d.events[opcode](d, msg)
+func (d *DataDeviceManager) HandleEvent(msg message) {
+	if d.events[msg.opcode] != nil {
+		d.events[msg.opcode](d, msg)
 	}
 }
 

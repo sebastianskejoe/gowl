@@ -10,7 +10,7 @@ type Buffer struct {
 //	*WlObject
 	id int32
 	listeners map[int16][]chan interface{}
-	events []func (b *Buffer, msg []byte)
+	events []func (b *Buffer, msg message)
 }
 
 //// Requests
@@ -22,9 +22,9 @@ func (b *Buffer) Destroy () {
 }
 
 //// Events
-func (b *Buffer) HandleEvent(opcode int16, msg []byte) {
-	if b.events[opcode] != nil {
-		b.events[opcode](b, msg)
+func (b *Buffer) HandleEvent(msg message) {
+	if b.events[msg.opcode] != nil {
+		b.events[msg.opcode](b, msg)
 	}
 }
 
@@ -33,9 +33,10 @@ type BufferRelease struct {
 
 func (b *Buffer) AddReleaseListener(channel chan interface{}) {
 	b.listeners[0] = append(b.listeners[0], channel)
+	addListener(channel)
 }
 
-func buffer_release(b *Buffer, msg []byte) {
+func buffer_release(b *Buffer, msg message) {
 	var data BufferRelease
 
 	for _,channel := range b.listeners[0] {

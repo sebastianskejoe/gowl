@@ -10,7 +10,7 @@ type DataSource struct {
 //	*WlObject
 	id int32
 	listeners map[int16][]chan interface{}
-	events []func (d *DataSource, msg []byte)
+	events []func (d *DataSource, msg message)
 }
 
 //// Requests
@@ -30,9 +30,9 @@ func (d *DataSource) Destroy () {
 }
 
 //// Events
-func (d *DataSource) HandleEvent(opcode int16, msg []byte) {
-	if d.events[opcode] != nil {
-		d.events[opcode](d, msg)
+func (d *DataSource) HandleEvent(msg message) {
+	if d.events[msg.opcode] != nil {
+		d.events[msg.opcode](d, msg)
 	}
 }
 
@@ -42,13 +42,13 @@ type DataSourceTarget struct {
 
 func (d *DataSource) AddTargetListener(channel chan interface{}) {
 	d.listeners[0] = append(d.listeners[0], channel)
+	addListener(channel)
 }
 
-func data_source_target(d *DataSource, msg []byte) {
+func data_source_target(d *DataSource, msg message) {
 	var data DataSourceTarget
-	buf := bytes.NewBuffer(msg)
 
-	_,mime_type,err := readString(buf)
+	_,mime_type,err := readString(msg.buf)
 	if err != nil {
 		// XXX Error handling
 	}
@@ -69,22 +69,19 @@ type DataSourceSend struct {
 
 func (d *DataSource) AddSendListener(channel chan interface{}) {
 	d.listeners[1] = append(d.listeners[1], channel)
+	addListener(channel)
 }
 
-func data_source_send(d *DataSource, msg []byte) {
+func data_source_send(d *DataSource, msg message) {
 	var data DataSourceSend
-	buf := bytes.NewBuffer(msg)
 
-	_,mime_type,err := readString(buf)
+	_,mime_type,err := readString(msg.buf)
 	if err != nil {
 		// XXX Error handling
 	}
 	data.MimeType = mime_type
 
-	fd,err := readUintptr(buf)
-	if err != nil {
-		// XXX Error handling
-	}
+    fd := msg.fd
 	data.Fd = fd
 
 	for _,channel := range d.listeners[1] {
@@ -100,9 +97,10 @@ type DataSourceCancelled struct {
 
 func (d *DataSource) AddCancelledListener(channel chan interface{}) {
 	d.listeners[2] = append(d.listeners[2], channel)
+	addListener(channel)
 }
 
-func data_source_cancelled(d *DataSource, msg []byte) {
+func data_source_cancelled(d *DataSource, msg message) {
 	var data DataSourceCancelled
 
 	for _,channel := range d.listeners[2] {

@@ -4,7 +4,7 @@ type Shell struct {
 //	*WlObject
 	id int32
 	listeners map[int16][]chan interface{}
-	events []func (s *Shell, msg []byte)
+	events []func (s *Shell, msg message)
 }
 
 //// Requests
@@ -19,9 +19,9 @@ func (s *Shell) GetShellSurface (id *ShellSurface, surface *Surface) {
 }
 
 //// Events
-func (s *Shell) HandleEvent(opcode int16, msg []byte) {
-	if s.events[opcode] != nil {
-		s.events[opcode](s, msg)
+func (s *Shell) HandleEvent(msg message) {
+	if s.events[msg.opcode] != nil {
+		s.events[msg.opcode](s, msg)
 	}
 }
 

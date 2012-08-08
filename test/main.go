@@ -1,24 +1,22 @@
 package main
 
 import (
-	"github.com/sebastianskejoe/gowl"
 	"fmt"
+	"github.com/sebastianskejoe/gowl"
 	"strings"
 	"syscall"
-	"io/ioutil"
-	"os"
 )
 
 type Display struct {
-	display *gowl.Display
-	compositor *gowl.Compositor
-	shm *gowl.Shm
-	shell *gowl.Shell
-	pool *gowl.ShmPool
-	buffer *gowl.Buffer
-	surface *gowl.Surface
+	display       *gowl.Display
+	compositor    *gowl.Compositor
+	shm           *gowl.Shm
+	shell         *gowl.Shell
+	pool          *gowl.ShmPool
+	buffer        *gowl.Buffer
+	surface       *gowl.Surface
 	shell_surface *gowl.ShellSurface
-	data []byte
+	data          []byte
 }
 
 var (
@@ -31,7 +29,7 @@ func main() {
 	display.display = gowl.NewDisplay()
 	err := display.display.Connect()
 	if err != nil {
-		fmt.Println("Couldn't connect:",err)
+		fmt.Println("Couldn't connect:", err)
 		return
 	}
 	display.compositor = gowl.NewCompositor()
@@ -46,14 +44,18 @@ func main() {
 	go display.globalListener(globchan)
 	display.display.AddGlobalListener(globchan)
 
-	display.display.Iterate()
+	err = display.display.Iterate()
+	if err != nil {
+        fmt.Println("Error iterating:",err)
+		return
+	}
 
 	// Sync
 	waitForSync(display.display)
 
 	// create pool
-	fd := create_tmp(250*250*4)
-	mmap,err := syscall.Mmap(int(fd), 0, 250000, syscall.PROT_READ|syscall.PROT_WRITE, syscall.MAP_SHARED)
+	fd := gowl.CreateTmp(250 * 250 * 4)
+	mmap, err := syscall.Mmap(int(fd), 0, 250000, syscall.PROT_READ|syscall.PROT_WRITE, syscall.MAP_SHARED)
 	if err != nil {
 		fmt.Println(err)
 	}
@@ -76,7 +78,6 @@ func main() {
 	display.buffer.Destroy()
 	display.surface.Destroy()
 }
-
 
 //// Event listeners
 func Pong(ss *gowl.ShellSurface) {
@@ -104,23 +105,23 @@ func (d *Display) globalListener(c chan interface{}) {
 
 //// Helper
 func redraw(display *Display) {
-	col = uint8(int8(col)+add)
+	col = uint8(int8(col) + add)
 	if col == 255 {
 		add = -1
 	} else if col == 0 {
 		add = 1
 	}
 
-	for i,_ := range display.data {
+	for i, _ := range display.data {
 		display.data[i] = byte(col)
 	}
 	display.surface.Attach(display.buffer, 0, 0)
-	display.surface.Damage(0,0,250,250)
+	display.surface.Damage(0, 0, 250, 250)
 	cb := gowl.NewCallback()
 	done := make(chan interface{})
 	cb.AddDoneListener(done)
 	display.surface.Frame(cb)
-	func () {
+	func() {
 		for {
 			select {
 			case <-done:
@@ -129,7 +130,7 @@ func redraw(display *Display) {
 				display.display.Iterate()
 			}
 		}
-	} ()
+	}()
 }
 
 func waitForSync(display *gowl.Display) {
@@ -137,7 +138,7 @@ func waitForSync(display *gowl.Display) {
 	done := make(chan interface{})
 	cb.AddDoneListener(done)
 	display.Sync(cb)
-	func () {
+	func() {
 		for {
 			select {
 			case <-done:
@@ -146,15 +147,5 @@ func waitForSync(display *gowl.Display) {
 				display.Iterate()
 			}
 		}
-	} ()
-}
-
-func create_tmp(size int64) (uintptr) {
-	tmp,err := ioutil.TempFile(os.Getenv("XDG_RUNTIME_DIR"), "gowl")
-	if err != nil {
-		fmt.Println(err)
-	}
-	tmp.Truncate(size)
-	os.Remove(tmp.Name())
-	return tmp.Fd()
+	}()
 }

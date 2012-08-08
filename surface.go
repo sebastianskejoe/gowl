@@ -10,7 +10,7 @@ type Surface struct {
 //	*WlObject
 	id int32
 	listeners map[int16][]chan interface{}
-	events []func (s *Surface, msg []byte)
+	events []func (s *Surface, msg message)
 }
 
 //// Requests
@@ -68,9 +68,9 @@ func (s *Surface) SetInputRegion (region *Region) {
 }
 
 //// Events
-func (s *Surface) HandleEvent(opcode int16, msg []byte) {
-	if s.events[opcode] != nil {
-		s.events[opcode](s, msg)
+func (s *Surface) HandleEvent(msg message) {
+	if s.events[msg.opcode] != nil {
+		s.events[msg.opcode](s, msg)
 	}
 }
 
@@ -80,13 +80,13 @@ type SurfaceEnter struct {
 
 func (s *Surface) AddEnterListener(channel chan interface{}) {
 	s.listeners[0] = append(s.listeners[0], channel)
+	addListener(channel)
 }
 
-func surface_enter(s *Surface, msg []byte) {
+func surface_enter(s *Surface, msg message) {
 	var data SurfaceEnter
-	buf := bytes.NewBuffer(msg)
 
-	outputid, err := readInt32(buf)
+	outputid, err := readInt32(msg.buf)
 	if err != nil {
 		// XXX Error handling
 	}
@@ -112,13 +112,13 @@ type SurfaceLeave struct {
 
 func (s *Surface) AddLeaveListener(channel chan interface{}) {
 	s.listeners[1] = append(s.listeners[1], channel)
+	addListener(channel)
 }
 
-func surface_leave(s *Surface, msg []byte) {
+func surface_leave(s *Surface, msg message) {
 	var data SurfaceLeave
-	buf := bytes.NewBuffer(msg)
 
-	outputid, err := readInt32(buf)
+	outputid, err := readInt32(msg.buf)
 	if err != nil {
 		// XXX Error handling
 	}

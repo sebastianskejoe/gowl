@@ -4,7 +4,7 @@ type Region struct {
 //	*WlObject
 	id int32
 	listeners map[int16][]chan interface{}
-	events []func (r *Region, msg []byte)
+	events []func (r *Region, msg message)
 }
 
 //// Requests
@@ -38,9 +38,9 @@ func (r *Region) Subtract (x int32, y int32, width int32, height int32) {
 }
 
 //// Events
-func (r *Region) HandleEvent(opcode int16, msg []byte) {
-	if r.events[opcode] != nil {
-		r.events[opcode](r, msg)
+func (r *Region) HandleEvent(msg message) {
+	if r.events[msg.opcode] != nil {
+		r.events[msg.opcode](r, msg)
 	}
 }
 

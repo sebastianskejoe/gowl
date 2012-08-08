@@ -10,14 +10,14 @@ type Callback struct {
 //	*WlObject
 	id int32
 	listeners map[int16][]chan interface{}
-	events []func (c *Callback, msg []byte)
+	events []func (c *Callback, msg message)
 }
 
 //// Requests
 //// Events
-func (c *Callback) HandleEvent(opcode int16, msg []byte) {
-	if c.events[opcode] != nil {
-		c.events[opcode](c, msg)
+func (c *Callback) HandleEvent(msg message) {
+	if c.events[msg.opcode] != nil {
+		c.events[msg.opcode](c, msg)
 	}
 }
 
@@ -27,13 +27,13 @@ type CallbackDone struct {
 
 func (c *Callback) AddDoneListener(channel chan interface{}) {
 	c.listeners[0] = append(c.listeners[0], channel)
+	addListener(channel)
 }
 
-func callback_done(c *Callback, msg []byte) {
+func callback_done(c *Callback, msg message) {
 	var data CallbackDone
-	buf := bytes.NewBuffer(msg)
 
-	serial,err := readUint32(buf)
+	serial,err := readUint32(msg.buf)
 	if err != nil {
 		// XXX Error handling
 	}

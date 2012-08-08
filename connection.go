@@ -9,7 +9,6 @@ import (
 	"syscall"
 	"os"
 	"net"
-	"errors"
 )
 
 type Connection struct {
@@ -39,37 +38,56 @@ func connect_to_socket() error {
 	conn.reader = bufio.NewReader(c)
 	conn.writer = bufio.NewWriter(c)
 	conn.unixconn = c
+
 	return nil
 }
 
-func getmsg() (id int32, opcode int16, size int16, msg []byte, remain int, err error) {
-	// Message header
-	id,err = readInt32(conn.reader)
-	if err != nil {
-		return
-	}
-	opcode,err = readInt16(conn.reader)
-	if err != nil {
-		return
-	}
-	size,err = readInt16(conn.reader)
-	if err != nil {
-		return
-	}
+func getmsg() (msgs []message, err error) {
+    // Get all messages in buffer
+    b := make([]byte, 1024)
+    oob := make([]byte, 1024)
+    n, oobn, _,_, err := conn.unixconn.ReadMsgUnix(b, oob)
 
-	if size < 8 {
-		err = errors.New(fmt.Sprintf("Invalid msg: %d %d %d",id, opcode, size))
-		return
-	}
+    if err != nil {
+        return
+    }
 
-	// Message
-	msg = make([]byte, size-8)
-	_,err = conn.reader.Read(msg)
-	if err != nil {
-		return
-	}
+    bbuf := bytes.NewBuffer(b)
+    oobbuf := bytes.NewBuffer(oob)
+    read := 0
+    for read < n {
+        var msg message
 
-	remain = conn.reader.Buffered()
+        id,err := readInt32(bbuf)
+        if err != nil {
+            break
+        }
+        msg.obj = getObject(id)
+
+        msg.opcode, err = readInt16(bbuf)
+        if err != nil {
+            break
+        }
+
+        size, err := readInt16(bbuf)
+        if err != nil {
+            break
+        }
+
+        msg.buf = bytes.NewBuffer(bbuf.Next(int(size-8)))
+        if err != nil {
+            break
+        }
+        read += int(size)
+
+        if oobn != 0 {
+            msg.fd,err = readUintptr(oobbuf)
+            if err != nil {
+                break
+            }
+        }
+        msgs = append(msgs, msg)
+    }
 
 	return
 }

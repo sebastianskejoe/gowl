@@ -10,7 +10,7 @@ type DataDevice struct {
 //	*WlObject
 	id int32
 	listeners map[int16][]chan interface{}
-	events []func (d *DataDevice, msg []byte)
+	events []func (d *DataDevice, msg message)
 }
 
 //// Requests
@@ -35,9 +35,9 @@ func (d *DataDevice) SetSelection (source *DataSource, serial uint32) {
 }
 
 //// Events
-func (d *DataDevice) HandleEvent(opcode int16, msg []byte) {
-	if d.events[opcode] != nil {
-		d.events[opcode](d, msg)
+func (d *DataDevice) HandleEvent(msg message) {
+	if d.events[msg.opcode] != nil {
+		d.events[msg.opcode](d, msg)
 	}
 }
 
@@ -47,13 +47,13 @@ type DataDeviceDataOffer struct {
 
 func (d *DataDevice) AddDataOfferListener(channel chan interface{}) {
 	d.listeners[0] = append(d.listeners[0], channel)
+	addListener(channel)
 }
 
-func data_device_data_offer(d *DataDevice, msg []byte) {
+func data_device_data_offer(d *DataDevice, msg message) {
 	var data DataDeviceDataOffer
-	buf := bytes.NewBuffer(msg)
 
-	idid, err := readInt32(buf)
+	idid, err := readInt32(msg.buf)
 	if err != nil {
 		// XXX Error handling
 	}
@@ -79,19 +79,19 @@ type DataDeviceEnter struct {
 
 func (d *DataDevice) AddEnterListener(channel chan interface{}) {
 	d.listeners[1] = append(d.listeners[1], channel)
+	addListener(channel)
 }
 
-func data_device_enter(d *DataDevice, msg []byte) {
+func data_device_enter(d *DataDevice, msg message) {
 	var data DataDeviceEnter
-	buf := bytes.NewBuffer(msg)
 
-	serial,err := readUint32(buf)
+	serial,err := readUint32(msg.buf)
 	if err != nil {
 		// XXX Error handling
 	}
 	data.Serial = serial
 
-	surfaceid, err := readInt32(buf)
+	surfaceid, err := readInt32(msg.buf)
 	if err != nil {
 		// XXX Error handling
 	}
@@ -103,19 +103,19 @@ func data_device_enter(d *DataDevice, msg []byte) {
 	surface = surfaceobj.(*Surface)
 	data.Surface = surface
 
-	x,err := readFixed(buf)
+	x,err := readFixed(msg.buf)
 	if err != nil {
 		// XXX Error handling
 	}
 	data.X = x
 
-	y,err := readFixed(buf)
+	y,err := readFixed(msg.buf)
 	if err != nil {
 		// XXX Error handling
 	}
 	data.Y = y
 
-	idid, err := readInt32(buf)
+	idid, err := readInt32(msg.buf)
 	if err != nil {
 		// XXX Error handling
 	}
@@ -140,9 +140,10 @@ type DataDeviceLeave struct {
 
 func (d *DataDevice) AddLeaveListener(channel chan interface{}) {
 	d.listeners[2] = append(d.listeners[2], channel)
+	addListener(channel)
 }
 
-func data_device_leave(d *DataDevice, msg []byte) {
+func data_device_leave(d *DataDevice, msg message) {
 	var data DataDeviceLeave
 
 	for _,channel := range d.listeners[2] {
@@ -161,25 +162,25 @@ type DataDeviceMotion struct {
 
 func (d *DataDevice) AddMotionListener(channel chan interface{}) {
 	d.listeners[3] = append(d.listeners[3], channel)
+	addListener(channel)
 }
 
-func data_device_motion(d *DataDevice, msg []byte) {
+func data_device_motion(d *DataDevice, msg message) {
 	var data DataDeviceMotion
-	buf := bytes.NewBuffer(msg)
 
-	time,err := readUint32(buf)
+	time,err := readUint32(msg.buf)
 	if err != nil {
 		// XXX Error handling
 	}
 	data.Time = time
 
-	x,err := readFixed(buf)
+	x,err := readFixed(msg.buf)
 	if err != nil {
 		// XXX Error handling
 	}
 	data.X = x
 
-	y,err := readFixed(buf)
+	y,err := readFixed(msg.buf)
 	if err != nil {
 		// XXX Error handling
 	}
@@ -198,9 +199,10 @@ type DataDeviceDrop struct {
 
 func (d *DataDevice) AddDropListener(channel chan interface{}) {
 	d.listeners[4] = append(d.listeners[4], channel)
+	addListener(channel)
 }
 
-func data_device_drop(d *DataDevice, msg []byte) {
+func data_device_drop(d *DataDevice, msg message) {
 	var data DataDeviceDrop
 
 	for _,channel := range d.listeners[4] {
@@ -217,13 +219,13 @@ type DataDeviceSelection struct {
 
 func (d *DataDevice) AddSelectionListener(channel chan interface{}) {
 	d.listeners[5] = append(d.listeners[5], channel)
+	addListener(channel)
 }
 
-func data_device_selection(d *DataDevice, msg []byte) {
+func data_device_selection(d *DataDevice, msg message) {
 	var data DataDeviceSelection
-	buf := bytes.NewBuffer(msg)
 
-	idid, err := readInt32(buf)
+	idid, err := readInt32(msg.buf)
 	if err != nil {
 		// XXX Error handling
 	}

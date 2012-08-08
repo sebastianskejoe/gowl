@@ -10,14 +10,14 @@ type Keyboard struct {
 //	*WlObject
 	id int32
 	listeners map[int16][]chan interface{}
-	events []func (k *Keyboard, msg []byte)
+	events []func (k *Keyboard, msg message)
 }
 
 //// Requests
 //// Events
-func (k *Keyboard) HandleEvent(opcode int16, msg []byte) {
-	if k.events[opcode] != nil {
-		k.events[opcode](k, msg)
+func (k *Keyboard) HandleEvent(msg message) {
+	if k.events[msg.opcode] != nil {
+		k.events[msg.opcode](k, msg)
 	}
 }
 
@@ -29,25 +29,22 @@ type KeyboardKeymap struct {
 
 func (k *Keyboard) AddKeymapListener(channel chan interface{}) {
 	k.listeners[0] = append(k.listeners[0], channel)
+	addListener(channel)
 }
 
-func keyboard_keymap(k *Keyboard, msg []byte) {
+func keyboard_keymap(k *Keyboard, msg message) {
 	var data KeyboardKeymap
-	buf := bytes.NewBuffer(msg)
 
-	format,err := readUint32(buf)
+	format,err := readUint32(msg.buf)
 	if err != nil {
 		// XXX Error handling
 	}
 	data.Format = format
 
-	fd,err := readUintptr(buf)
-	if err != nil {
-		// XXX Error handling
-	}
+    fd := msg.fd
 	data.Fd = fd
 
-	size,err := readUint32(buf)
+	size,err := readUint32(msg.buf)
 	if err != nil {
 		// XXX Error handling
 	}
@@ -69,19 +66,19 @@ type KeyboardEnter struct {
 
 func (k *Keyboard) AddEnterListener(channel chan interface{}) {
 	k.listeners[1] = append(k.listeners[1], channel)
+	addListener(channel)
 }
 
-func keyboard_enter(k *Keyboard, msg []byte) {
+func keyboard_enter(k *Keyboard, msg message) {
 	var data KeyboardEnter
-	buf := bytes.NewBuffer(msg)
 
-	serial,err := readUint32(buf)
+	serial,err := readUint32(msg.buf)
 	if err != nil {
 		// XXX Error handling
 	}
 	data.Serial = serial
 
-	surfaceid, err := readInt32(buf)
+	surfaceid, err := readInt32(msg.buf)
 	if err != nil {
 		// XXX Error handling
 	}
@@ -93,7 +90,7 @@ func keyboard_enter(k *Keyboard, msg []byte) {
 	surface = surfaceobj.(*Surface)
 	data.Surface = surface
 
-	keys,err := readArray(buf)
+	keys,err := readArray(msg.buf)
 	if err != nil {
 		// XXX Error handling
 	}
@@ -114,19 +111,19 @@ type KeyboardLeave struct {
 
 func (k *Keyboard) AddLeaveListener(channel chan interface{}) {
 	k.listeners[2] = append(k.listeners[2], channel)
+	addListener(channel)
 }
 
-func keyboard_leave(k *Keyboard, msg []byte) {
+func keyboard_leave(k *Keyboard, msg message) {
 	var data KeyboardLeave
-	buf := bytes.NewBuffer(msg)
 
-	serial,err := readUint32(buf)
+	serial,err := readUint32(msg.buf)
 	if err != nil {
 		// XXX Error handling
 	}
 	data.Serial = serial
 
-	surfaceid, err := readInt32(buf)
+	surfaceid, err := readInt32(msg.buf)
 	if err != nil {
 		// XXX Error handling
 	}
@@ -155,31 +152,31 @@ type KeyboardKey struct {
 
 func (k *Keyboard) AddKeyListener(channel chan interface{}) {
 	k.listeners[3] = append(k.listeners[3], channel)
+	addListener(channel)
 }
 
-func keyboard_key(k *Keyboard, msg []byte) {
+func keyboard_key(k *Keyboard, msg message) {
 	var data KeyboardKey
-	buf := bytes.NewBuffer(msg)
 
-	serial,err := readUint32(buf)
+	serial,err := readUint32(msg.buf)
 	if err != nil {
 		// XXX Error handling
 	}
 	data.Serial = serial
 
-	time,err := readUint32(buf)
+	time,err := readUint32(msg.buf)
 	if err != nil {
 		// XXX Error handling
 	}
 	data.Time = time
 
-	key,err := readUint32(buf)
+	key,err := readUint32(msg.buf)
 	if err != nil {
 		// XXX Error handling
 	}
 	data.Key = key
 
-	state,err := readUint32(buf)
+	state,err := readUint32(msg.buf)
 	if err != nil {
 		// XXX Error handling
 	}
@@ -203,37 +200,37 @@ type KeyboardModifiers struct {
 
 func (k *Keyboard) AddModifiersListener(channel chan interface{}) {
 	k.listeners[4] = append(k.listeners[4], channel)
+	addListener(channel)
 }
 
-func keyboard_modifiers(k *Keyboard, msg []byte) {
+func keyboard_modifiers(k *Keyboard, msg message) {
 	var data KeyboardModifiers
-	buf := bytes.NewBuffer(msg)
 
-	serial,err := readUint32(buf)
+	serial,err := readUint32(msg.buf)
 	if err != nil {
 		// XXX Error handling
 	}
 	data.Serial = serial
 
-	mods_depressed,err := readUint32(buf)
+	mods_depressed,err := readUint32(msg.buf)
 	if err != nil {
 		// XXX Error handling
 	}
 	data.ModsDepressed = mods_depressed
 
-	mods_latched,err := readUint32(buf)
+	mods_latched,err := readUint32(msg.buf)
 	if err != nil {
 		// XXX Error handling
 	}
 	data.ModsLatched = mods_latched
 
-	mods_locked,err := readUint32(buf)
+	mods_locked,err := readUint32(msg.buf)
 	if err != nil {
 		// XXX Error handling
 	}
 	data.ModsLocked = mods_locked
 
-	group,err := readUint32(buf)
+	group,err := readUint32(msg.buf)
 	if err != nil {
 		// XXX Error handling
 	}
