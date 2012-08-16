@@ -83,6 +83,7 @@ func getmsg() (msgs []message, err error) {
         if oobn != 0 {
             msg.fd,err = readUintptr(oobbuf)
             if err != nil {
+                fmt.Println("Had an error:", err)
                 break
             }
         }
@@ -113,12 +114,12 @@ func sendmsg(msg *message) {
 }
 
 func readUintptr(buf io.Reader) (uintptr, error) {
-	var val uintptr
+	var val uint32
 	err := binary.Read(buf, binary.LittleEndian, &val)
 	if err != nil {
-		return val, err
+		return uintptr(val), err
 	}
-	return val, nil
+	return uintptr(val), nil
 }
 
 func readUint32(buf io.Reader) (uint32, error) {
