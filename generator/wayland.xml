@@ -30,22 +30,12 @@
   <interface name="wl_display" version="1">
     <description summary="core global object">
       The core global object.  This is a special singleton object.  It
-      is used for internal wayland protocol features.
+      is used for internal Wayland protocol features.
     </description>
-    <request name="bind">
-      <description summary="bind an object to the display">
-	Binds a new, client-created object to the server using @name as
-	the identifier.
-      </description>
-      <arg name="name" type="uint" summary="unique number id for object"/>
-      <arg name="interface" type="string"/>
-      <arg name="version" type="uint"/>
-      <arg name="id" type="new_id" interface="wl_object"/>
-    </request>
 
     <request name="sync">
       <description summary="asynchronous roundtrip">
-	The sync request asks the server to invoke the 'done' request
+	The sync request asks the server to emit the 'done' event
 	on the provided wl_callback object.  Since requests are
 	handled in-order, this can be used as a barrier to ensure all
 	previous requests have been handled.
@@ -53,12 +43,16 @@
       <arg name="callback" type="new_id" interface="wl_callback"/>
     </request>
 
+    <request name="get_registry">
+      <arg name="callback" type="new_id" interface="wl_registry"/>
+    </request>
+
     <event name="error">
       <description summary="fatal error event">
 	The error event is sent out when a fatal (non-recoverable)
 	error has occurred.
       </description>
-      <arg name="object_id" type="object" interface="wl_object"/>
+      <arg name="object_id" type="object"/>
       <arg name="code" type="uint"/>
       <arg name="message" type="string"/>
     </event>
@@ -75,6 +69,26 @@
       <entry name="no_memory" value="2"
 	     summary="server is out of memory"/>
     </enum>
+
+    <event name="delete_id">
+      <description summary="acknowledge object id deletion">
+	Server has deleted the id and client can now reuse it.
+      </description>
+      <arg name="id" type="uint" />
+    </event>
+  </interface>
+
+  <interface name="wl_registry" version="1">
+    <request name="bind">
+      <description summary="bind an object to the display">
+	Binds a new, client-created object to the server using @name as
+	the identifier.
+      </description>
+      <arg name="name" type="uint" summary="unique number id for object"/>
+      <arg name="interface" type="string" />
+      <arg name="version" type="uint" />
+      <arg name="id" type="new_id"/>
+    </request>
 
     <event name="global">
       <description summary="announce global object">
@@ -97,13 +111,6 @@
 	Notify the client of removed global objects.
       </description>
       <arg name="name" type="uint"/>
-    </event>
-
-    <event name="delete_id">
-      <description summary="acknowledge object id deletion">
-	Server has deleted the id and client can now reuse it.
-      </description>
-      <arg name="id" type="uint" />
     </event>
   </interface>
 
@@ -138,7 +145,7 @@
   <interface name="wl_shm_pool" version="1">
     <description summary="a shared memory pool">
       The wl_shm_pool object encapsulates a piece of memory shared
-      between the compsitor and client.  Through the wl_shm_pool
+      between the compositor and client.  Through the wl_shm_pool
       object, the client can allocate shared memory wl_buffer objects.
       The objects will share the same underlying mapped memory.
       Reusing the mapped memory avoids the setup/teardown overhead and
@@ -156,7 +163,7 @@
 	those advertised through the wl_shm.format event.
 
 	A buffer will keep a reference to the pool it was created from
-	so it is valid to destroy the pool immediatedly after creating
+	so it is valid to destroy the pool immediately after creating
 	a buffer from it.
       </description>
 
@@ -221,22 +228,36 @@
 
   <interface name="wl_buffer" version="1">
     <description summary="content for a wl_surface">
-      A buffer provides the content for a wl_surface.  Buffers are
+      A buffer provides the content for a wl_surface. Buffers are
       created through factory interfaces such as wl_drm, wl_shm or
-      similar.  It has a width and a height and can be attached to a
+      similar. It has a width and a height and can be attached to a
       wl_surface, but the mechanism by which a client provides and
-      updates the contents is defined by the buffer factory interface
+      updates the contents is defined by the buffer factory interface.
     </description>
 
     <request name="destroy" type="destructor">
       <description summary="destroy a buffer">
-	Destroy a buffer.  This will invalidate the object id.
+	Destroy a buffer. If and how you need to release the backing
+	storage is defined by the buffer factory interface.
+
+	For possible side-effects to a surface, see wl_surface.attach.
       </description>
     </request>
 
     <event name="release">
       <description summary="compositor releases buffer">
-	Sent when an attached buffer is no longer used by the compositor.
+	Sent when this wl_buffer is no longer used by the compositor.
+	The client is now free to re-use or destroy this buffer and its
+	backing storage.
+
+	If a client receives a release event before the frame callback
+	requested in the same wl_surface.commit that attaches this
+	wl_buffer to a surface, then the client is immediately free to
+	re-use the buffer and its backing storage, and does not need a
+	second buffer for the next surface content update. Typically
+	this is possible, when the compositor maintains a copy of the
+	wl_surface contents, e.g. as a GL texture. This is an important
+	optimization for GL(ES) compositors with wl_shm clients.
       </description>
     </event>
   </interface>
@@ -332,8 +353,15 @@
 	The icon surface is an optional (can be nil) surface that
 	provides an icon to be moved around with the cursor.  Initially,
 	the top-left corner of the icon surface is placed at the cursor
-	hotspot, but subsequent surface.attach request can move the
-	relative position.
+	hotspot, but subsequent wl_surface.attach request can move the
+	relative position. Attach requests must be confirmed with
+	wl_surface.commit as usual.
+
+	The current and pending input regions of the icon wl_surface are
+	cleared, and wl_surface.set_input_region is ignored until the
+	wl_surface is no longer used as the icon surface. When the use
+	as an icon ends, the the current and pending input regions
+	become undefined, and the wl_surface is unmapped.
       </description>
       <arg name="source" type="object" interface="wl_data_source" allow-null="true"/>
       <arg name="origin" type="object" interface="wl_surface"/>
@@ -597,7 +625,7 @@
 	The configure event asks the client to resize its surface.
 	The size is a hint, in the sense that the client is free to
 	ignore it if it doesn't resize, pick a smaller size (to
-	satisfy aspect ration or resize in steps of NxM pixels).  The
+	satisfy aspect ratio or resize in steps of NxM pixels).  The
 	client is free to dismiss all but the last configure event it
 	received.
       </description>
@@ -630,9 +658,39 @@
 
     <request name="attach">
       <description summary="set the surface contents">
-	Copy the contents of a buffer into this surface. The x and y
-	arguments specify the location of the new buffers upper left
-	corner, relative to the old buffers upper left corner.
+	Set the contents of a buffer into this surface. The x and y
+	arguments specify the location of the new pending buffer's upper
+	left corner, relative to the current buffer's upper left corner. In
+	other words, the x and y, and the width and height of the wl_buffer
+	together define in which directions the surface's size changes.
+
+	Surface contents are double-buffered state, see wl_surface.commit.
+
+	The initial surface contents are void; there is no content.
+	wl_surface.attach assigns the given wl_buffer as the pending wl_buffer.
+	wl_surface.commit applies the pending wl_buffer as the new
+	surface contents, and the size of the surface becomes the size of
+	the wl_buffer. The wl_buffer is also kept as pending, until
+	changed by wl_surface.attach or the wl_buffer is destroyed.
+
+	Committing a pending wl_buffer allows the compositor to read the
+	pixels in the wl_buffer. The compositor may access the pixels at any
+	time after the wl_surface.commit request. When the compositor will
+	not access the pixels anymore, it will send the wl_buffer.release
+	event. Only after receiving wl_buffer.release, the client may re-use
+	the wl_buffer. A wl_buffer, that has been attached and then replaced
+	by another attach instead of committed, will not receive a release
+	event, and is not used by the compositor.
+
+	Destroying the wl_buffer after wl_buffer.release does not change the
+	surface contents, even if the wl_buffer is still pending for the
+	next commit. In such case, the next commit does not change the
+	surface contents. However, if the client destroys the wl_buffer
+	before receiving wl_buffer.release, the surface contents become
+	undefined immediately.
+
+	Only if wl_surface.attach is sent with a nil wl_buffer, the
+	following wl_surface.commit will remove the surface content.
       </description>
 
       <arg name="buffer" type="object" interface="wl_buffer" allow-null="true"/>
@@ -642,10 +700,21 @@
 
     <request name="damage">
       <description summary="mark part of the surface damaged">
-	After attaching a new buffer, this request is used to describe
-	the regions where the new buffer is different from the
-	previous buffer and needs to be repainted.  Coordinates are
-	relative to the new buffer.
+	This request is used to describe the regions where the pending
+	buffer (or if pending buffer is none, the current buffer as updated
+	in-place) on the next wl_surface.commit will be different from the
+	current buffer, and needs to be repainted. The pending buffer can be
+	set by wl_surface.attach. The compositor ignores the parts of the
+	damage that fall outside of the surface.
+
+	Damage is double-buffered state, see wl_surface.commit.
+
+	The initial value for pending damage is empty: no damage.
+	wl_surface.damage adds pending damage: the new pending damage is the
+	union of old pending damage and the given rectangle.
+	wl_surface.commit assigns pending damage as the current damage, and
+	clears pending damage. The server will clear the current damage as
+	it repaints the surface.
       </description>
 
       <arg name="x" type="int"/>
@@ -656,10 +725,20 @@
 
     <request name="frame">
       <description summary="request repaint feedback">
-	Request notification when the next frame is displayed.  Useful
+	Request notification when the next frame is displayed. Useful
 	for throttling redrawing operations, and driving animations.
+	The frame request will take effect on the next wl_surface.commit.
 	The notification will only be posted for one frame unless
 	requested again.
+
+	A server should avoid signalling the frame callbacks if the
+	surface is not visible in any way, e.g. the surface is off-screen,
+	or completely obscured by other opaque surfaces.
+
+	A client can request a frame callback even without an attach,
+	damage, or any other state changes. wl_surface.commit triggers a
+	display update, so the callback event will arrive after the next
+	output refresh where the surface is visible.
       </description>
 
       <arg name="callback" type="new_id" interface="wl_callback"/>
@@ -667,37 +746,75 @@
 
     <request name="set_opaque_region">
       <description summary="set opaque region">
-	This requests sets the region of the surface that contain
+	This request sets the region of the surface that contains
 	opaque content.  The opaque region is an optimization hint for
 	the compositor that lets it optimize out redrawing of content
 	behind opaque regions.  Setting an opaque region is not
 	required for correct behaviour, but marking transparent
 	content as opaque will result in repaint artifacts.
+	The compositor ignores the parts of the opaque region that fall
+	outside of the surface.
 
-	The region will be clipped to the extents of the current
-	surface size.  Setting the region has copy semantics, and the
-	region object can be destroyed immediately after setting the
-	opaque region.  If a buffer of a different size is attached or
-	if a nil region is set, the opaque region will revert back to
-	default.  The default opaque region is empty.
+	Opaque region is double-buffered state, see wl_surface.commit.
+
+	wl_surface.set_opaque_region changes the pending opaque region.
+	wl_surface.commit copies the pending region to the current region.
+	Otherwise the pending and current regions are never changed.
+
+	The initial value for opaque region is empty. Setting the pending
+	opaque region has copy semantics, and the wl_region object can be
+	destroyed immediately. A nil wl_region causes the pending opaque
+	region to be set to empty.
       </description>
 
-      <arg name="region" type="object" interface="wl_region"/>
+      <arg name="region" type="object" interface="wl_region" allow-null="true"/>
     </request>
 
     <request name="set_input_region">
       <description summary="set input region">
-	This requests sets the region of the surface that can receive
-	pointer and touch events.  The region will be clipped to the
-	extents of the current surface size.  Setting the region has
-	copy semantics, and the region object can be destroyed
-	immediately after setting the input region.  If a buffer of a
-	different size is attached or if a nil region is passed, the
-	input region will revert back to default.  The default input
-	region is the entire surface.
+	This request sets the region of the surface that can receive
+	pointer and touch events. Input events happening outside of
+	this region will try the next surface in the server surface
+	stack. The compositor ignores the parts of the input region that
+	fall outside of the surface.
+
+	Input region is double-buffered state, see wl_surface.commit.
+
+	wl_surface.set_input_region changes the pending input region.
+	wl_surface.commit copies the pending region to the current region.
+	Otherwise the pending and current regions are never changed,
+	except cursor and icon surfaces are special cases, see
+	wl_pointer.set_cursor and wl_data_device.start_drag.
+
+	The initial value for input region is infinite. That means the whole
+	surface will accept input. Setting the pending input region has copy
+	semantics, and the wl_region object can be destroyed immediately. A
+	nil wl_region causes the input region to be set to infinite.
       </description>
 
       <arg name="region" type="object" interface="wl_region" allow-null="true"/>
+    </request>
+
+    <request name="commit">
+      <description summary="commit pending surface state">
+	Surface state (input, opaque, and damage regions, attached buffers,
+	etc.) is double-buffered. Protocol requests modify the pending
+	state, as opposed to current state in use by the compositor. Commit
+	request atomically applies all pending state, replacing the current
+	state. After commit, the new pending state is as documented for each
+	related request.
+
+	On commit, a pending wl_buffer is applied first, all other state
+	second. This means that all coordinates in double-buffered state are
+	relative to the new wl_buffer coming into use, except for
+	wl_surface.attach itself. If the pending wl_buffer is none, the
+	coordinates are relative to the current surface contents.
+
+	All requests that need a commit to become effective are documented
+	to affect double-buffered state.
+
+	Other interfaces may add further double-buffered surface state.
+      </description>
     </request>
 
     <event name="enter">
@@ -776,8 +893,8 @@
     <request name="set_cursor">
       <description summary="set the pointer surface">
 	Set the pointer surface, i.e., the surface that contains the
-	pointer image. This request only takes effect if the pointer
-	focus for this device is one of the requesting client surfaces
+	pointer image (cursor). This request only takes effect if the pointer
+	focus for this device is one of the requesting client's surfaces
 	or the surface parameter is the current pointer surface. If
 	there was a previous surface set with this request it is
 	replaced. If surface is NULL, the pointer image is hidden.
@@ -789,11 +906,18 @@
 
 	On surface.attach requests to the pointer surface, hotspot_x
 	and hotspot_y are decremented by the x and y parameters
-	passed to the request.
+	passed to the request. Attach must be confirmed by
+	wl_surface.commit as usual.
 
-	The hotspot can also be updated by passing the current set
+	The hotspot can also be updated by passing the currently set
 	pointer surface to this request with new values for hotspot_x
-	and/or hotspot_y.
+	and hotspot_y.
+
+	The current and pending input regions of the wl_surface are
+	cleared, and wl_surface.set_input_region is ignored until the
+	wl_surface is no longer used as the cursor. When the use as a
+	cursor ends, the current and pending input regions become
+	undefined, and the wl_surface is unmapped.
       </description>
 
       <arg name="serial" type="uint"/>
@@ -864,6 +988,21 @@
     <event name="axis">
       <description summary="axis event">
 	Scroll and other axis notifications.
+
+	For scroll events (vertical and horizontal scroll axes), the
+	value parameter is the length of a vector along the specified
+	axis in a coordinate space identical to those of motion events,
+	representing a relative movement along the specified axis.
+
+	For devices that support movements non-parallel to axes multiple
+	axis events will be emitted.
+
+	When applicable, for example for touch pads, the server can
+	choose to emit scroll events where the motion vector is
+	equivalent to a motion event vector.
+
+	When applicable, clients can transform its view relative to the
+	scroll distance.
       </description>
 
       <arg name="time" type="uint"/>
@@ -908,11 +1047,9 @@
     <enum name="key_state">
       <description summary="physical key state">
         Describes the physical state of a key which provoked the key event.
-	When a key repeats, the sequence is down -> repeat -> repeat -> up.
       </description>
       <entry name="released" value="0" summary="key is not pressed"/>
       <entry name="pressed" value="1" summary="key is pressed"/>
-      <entry name="repeat" value="2" summary="key is pressed and repeating"/>
     </enum>
 
     <event name="key">
@@ -1001,6 +1138,31 @@
       <entry name="vertical_bgr" value="5"/>
     </enum>
 
+    <enum name="transform">
+      <description summary="transform from framebuffer to output">
+	This describes the transform that a compositor will apply to a
+	surface to compensate for the rotation or mirroring of an
+	output device.
+
+	The flipped values correspond to an initial flip around a
+	vertical axis followed by rotation.
+
+	The purpose is mainly to allow clients render accordingly and
+	tell the compositor, so that for fullscreen surfaces, the
+	compositor will still be able to scan out directly from client
+	surfaces.
+      </description>
+
+      <entry name="normal" value="0"/>
+      <entry name="90" value="1"/>
+      <entry name="180" value="2"/>
+      <entry name="270" value="3"/>
+      <entry name="flipped" value="4"/>
+      <entry name="flipped_90" value="5"/>
+      <entry name="flipped_180" value="6"/>
+      <entry name="flipped_270" value="7"/>
+    </enum>
+
     <event name="geometry">
       <description summary="properties of the output"/>
       <arg name="x" type="int"
@@ -1017,6 +1179,8 @@
 	   summary="textual description of the manufacturer"/>
       <arg name="model" type="string"
 	   summary="textual description of the model"/>
+      <arg name="transform" type="int"
+	   summary="transform that maps framebuffer to output"/>
     </event>
 
     <enum name="mode">

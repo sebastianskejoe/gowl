@@ -16,6 +16,7 @@ type Connection struct {
 	addr *net.UnixAddr
 	reader *bufio.Reader
 	writer *bufio.Writer
+    alive bool
 }
 
 type message struct {
@@ -38,6 +39,7 @@ func connect_to_socket() error {
 	conn.reader = bufio.NewReader(c)
 	conn.writer = bufio.NewWriter(c)
 	conn.unixconn = c
+    conn.alive = true
 
 	return nil
 }
@@ -46,7 +48,8 @@ func getmsg() (msgs []message, err error) {
     // Get all messages in buffer
     b := make([]byte, 1024)
     oob := make([]byte, 1024)
-    n, oobn, _,_, err := conn.unixconn.ReadMsgUnix(b, oob)
+    n, oobn, flags,_, err := conn.unixconn.ReadMsgUnix(b, oob)
+    fd := uintptr(0)
 
     if err != nil {
         return
@@ -54,6 +57,24 @@ func getmsg() (msgs []message, err error) {
 
     bbuf := bytes.NewBuffer(b)
     oobbuf := bytes.NewBuffer(oob)
+
+    if oobn != 0 {
+        fmt.Println("Out-of-band recv: Len",oobn,oobbuf.Bytes()[:oobn], flags)
+        readInt32(oobbuf)
+        readInt32(oobbuf)
+        readInt32(oobbuf)
+        fd,err = readUintptr(oobbuf)
+        fmt.Println("Fd is",fd)
+        dup,_ := syscall.Dup(int(fd))
+        fd = uintptr(dup)
+        fmt.Println("Fd is",fd)
+        if err != nil {
+            fmt.Println("Had an error:", err)
+            return
+        }
+    }
+
+
     read := 0
     for read < n {
         var msg message
@@ -80,14 +101,13 @@ func getmsg() (msgs []message, err error) {
         }
         read += int(size)
 
-        if oobn != 0 {
-            msg.fd,err = readUintptr(oobbuf)
-            if err != nil {
-                fmt.Println("Had an error:", err)
-                break
-            }
+        if fd != 0 {
+            msg.fd = fd
         }
+
         msgs = append(msgs, msg)
+
+        fmt.Printf("%s@%d.%d(%d)\n", msg.obj.Name(), msg.obj.Id(), msg.opcode, msg.buf.Bytes())
     }
 
 	return
@@ -111,6 +131,75 @@ func sendmsg(msg *message) {
 		return
 	}
 	syscall.Close(int(msg.fd))
+}
+
+func sendrequest(obj Object, req string, args ...interface{}) {
+    if conn.alive != true {
+        return
+    }
+    data := new(bytes.Buffer)
+    dbg := new(bytes.Buffer)
+    size := 8
+    fd := uintptr(0)
+    signature := signatures[req]
+    opcode := signature.opcode
+    sig := signature.signature
+    for i,arg := range args {
+        switch sig[i] {
+        case 'i', 'f':
+            size += 4
+            binary.Write(data, binary.LittleEndian, arg.(int32))
+            fmt.Fprintf(dbg, "%d ", arg)
+        case 'u':
+            size += 4
+            binary.Write(data, binary.LittleEndian, arg.(uint32))
+            fmt.Fprintf(dbg, "%d ", arg)
+        case 'h':
+	        fd,_,_ = syscall.Syscall(syscall.SYS_FCNTL, arg.(uintptr), syscall.F_DUPFD_CLOEXEC, 0)
+        case 'o':
+            size += 4
+            binary.Write(data, binary.LittleEndian, arg.(Object).Id())
+            fmt.Fprintf(dbg, "%d ", arg.(Object).Id())
+        case 'n':
+            size += 4
+            nobj := arg.(Object)
+            appendObject(nobj)
+            binary.Write(data, binary.LittleEndian, nobj.Id())
+            fmt.Fprintf(dbg, "new_id %d ", nobj.Id())
+        case 's':
+	        // First get padding
+            str := arg.(string)
+	        pad := 4-(len(str) % 4)
+	        binary.Write(data, binary.LittleEndian, int32(len(str)+pad))
+	        binary.Write(data, binary.LittleEndian, []byte(str))
+	        for i := 0 ; i < pad ; i++ {
+		        binary.Write(data, binary.LittleEndian, []byte{0})
+	        }
+            size += len(str)+pad+4
+            fmt.Fprintf(dbg, "%s ", str)
+        }
+    }
+
+    fmt.Printf(" -> %s@%d ( %s)\n",req,obj.Id(), dbg)
+
+    // Send message
+	buf := new(bytes.Buffer)
+	binary.Write(buf, binary.LittleEndian, obj.Id())
+	binary.Write(buf, binary.LittleEndian, opcode)
+	binary.Write(buf, binary.LittleEndian, int16(size))
+	binary.Write(buf, binary.LittleEndian, data.Bytes())
+
+	var cmsgbytes []byte
+	if fd != 0 {
+		cmsgbytes = syscall.UnixRights(int(fd))
+	}
+	_,_,err := conn.unixconn.WriteMsgUnix(buf.Bytes(), cmsgbytes, nil)
+	if err != nil {
+		fmt.Println("sendrequest",err)
+        os.Exit(1)
+		return
+	}
+	syscall.Close(int(fd))
 }
 
 func readUintptr(buf io.Reader) (uintptr, error) {
@@ -167,17 +256,17 @@ func readInt16(c io.Reader) (int16, error) {
 	return val, nil
 }
 
-func readString(c io.Reader) (uint32, string, error) {
+func readString(c io.Reader) (string, error) {
 	// First get string length
 	strlen, err := readUint32(c)
 	if err != nil {
-		return 0, "", err
+		return "", err
 	}
 	// Now get string
 	str := make([]byte, strlen-1)
 	_,err = c.Read(str)
 	if err != nil {
-		return 0, "", err
+		return "", err
 	}
 
 	pad := 4-(strlen % 4)
@@ -187,7 +276,7 @@ func readString(c io.Reader) (uint32, string, error) {
 	for i := uint32(0) ; i <= pad ; i++ {
 		binary.Read(c, binary.LittleEndian, []byte{0})
 	}
-	return strlen, string(str), nil
+	return string(str), nil
 }
 
 func readArray(c io.Reader) ([]interface{}, error) {

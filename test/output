@@ -1,0 +1,854 @@
+display.global { [1 wl_display 1] }
+display.global { [2 wl_compositor 1] }
+display.global { [3 screenshooter 1] }
+display.global { [4 text_cursor_position 1] }
+display.global { [5 input_method 1] }
+ -> display.bind { [2 wl_compositor 1 0xf84003a4e0] }
+display.global { [6 wl_data_device_manager 1] }
+display.global { [7 wl_shm 1] }
+display.global { [8 wl_drm 1] }
+display.global { [9 wl_seat 1] }
+display.global { [10 wl_output 1] }
+ -> display.bind { [7 wl_shm 1 0xf84003a4a0] }
+display.global { [11 wl_shell 1] }
+display.global { [12 desktop_shell 1] }
+display.global { [13 screensaver 1] }
+display.global { [14 input_panel 1] }
+ -> display.bind { [11 wl_shell 1 0xf84003a060] }
+ -> display.sync { [0xf8400855a0] }
+shm.format { [0] }
+shm.format { [1] }
+callback.done { [130] }
+display.delete_id { [5] }
+ -> shm.create_pool { [0xf84003a160 0 2500000] }
+ -> shm_pool.create_buffer { [0xf84003a1e0 0 250 250 1000 1] }
+ -> shm_pool.destroy { [] }
+ -> compositor.create_surface { [0xf84003a260] }
+ -> shell.get_shell_surface { [0xf84003a2c0 0xf84003a260] }
+ -> shell_surface.set_toplevel { [] }
+ -> shell_surface.set_title { [Gowl test window] }
+ -> surface.attach { [0xf84003a1e0 0 0] }
+ -> surface.damage { [0 0 250 250] }
+ -> surface.frame { [0xf8400858a0] }
+display.delete_id { [6] }
+callback.done { [2790667929] }
+display.delete_id { [9] }
+ -> surface.attach { [0xf84003a1e0 0 0] }
+ -> surface.damage { [0 0 250 250] }
+ -> surface.frame { [0xf840085920] }
+buffer.release { [] }
+callback.done { [2790667939] }
+display.delete_id { [10] }
+ -> surface.attach { [0xf84003a1e0 0 0] }
+ -> surface.damage { [0 0 250 250] }
+ -> surface.frame { [0xf8400859a0] }
+buffer.release { [] }
+callback.done { [2790667950] }
+display.delete_id { [6] }
+ -> surface.attach { [0xf84003a1e0 0 0] }
+ -> surface.damage { [0 0 250 250] }
+ -> surface.frame { [0xf840085a20] }
+buffer.release { [] }
+callback.done { [2790667960] }
+display.delete_id { [9] }
+ -> surface.attach { [0xf84003a1e0 0 0] }
+ -> surface.damage { [0 0 250 250] }
+ -> surface.frame { [0xf840085700] }
+buffer.release { [] }
+callback.done { [2790667976] }
+display.delete_id { [10] }
+ -> surface.attach { [0xf84003a1e0 0 0] }
+ -> surface.damage { [0 0 250 250] }
+ -> surface.frame { [0xf840085780] }
+buffer.release { [] }
+callback.done { [2790667992] }
+display.delete_id { [6] }
+ -> surface.attach { [0xf84003a1e0 0 0] }
+ -> surface.damage { [0 0 250 250] }
+ -> surface.frame { [0xf840085c00] }
+buffer.release { [] }
+callback.done { [2790668009] }
+display.delete_id { [9] }
+ -> surface.attach { [0xf84003a1e0 0 0] }
+ -> surface.damage { [0 0 250 250] }
+ -> surface.frame { [0xf840085c80] }
+buffer.release { [] }
+callback.done { [2790668025] }
+display.delete_id { [10] }
+ -> surface.attach { [0xf84003a1e0 0 0] }
+ -> surface.damage { [0 0 250 250] }
+ -> surface.frame { [0xf840085d00] }
+buffer.release { [] }
+callback.done { [2790668042] }
+display.delete_id { [6] }
+ -> surface.attach { [0xf84003a1e0 0 0] }
+ -> surface.damage { [0 0 250 250] }
+ -> surface.frame { [0xf840085d80] }
+buffer.release { [] }
+callback.done { [2790668059] }
+display.delete_id { [9] }
+ -> surface.attach { [0xf84003a1e0 0 0] }
+ -> surface.damage { [0 0 250 250] }
+ -> surface.frame { [0xf840085b60] }
+buffer.release { [] }
+callback.done { [2790668075] }
+display.delete_id { [10] }
+ -> surface.attach { [0xf84003a1e0 0 0] }
+ -> surface.damage { [0 0 250 250] }
+ -> surface.frame { [0xf840085be0] }
+buffer.release { [] }
+callback.done { [2790668092] }
+display.delete_id { [6] }
+ -> surface.attach { [0xf84003a1e0 0 0] }
+ -> surface.damage { [0 0 250 250] }
+ -> surface.frame { [0xf840091060] }
+buffer.release { [] }
+callback.done { [2790668109] }
+display.delete_id { [9] }
+ -> surface.attach { [0xf84003a1e0 0 0] }
+ -> surface.damage { [0 0 250 250] }
+ -> surface.frame { [0xf8400910e0] }
+buffer.release { [] }
+callback.done { [2790668125] }
+display.delete_id { [10] }
+ -> surface.attach { [0xf84003a1e0 0 0] }
+ -> surface.damage { [0 0 250 250] }
+ -> surface.frame { [0xf840091160] }
+buffer.release { [] }
+callback.done { [2790668142] }
+display.delete_id { [6] }
+ -> surface.attach { [0xf84003a1e0 0 0] }
+ -> surface.damage { [0 0 250 250] }
+ -> surface.frame { [0xf8400911e0] }
+buffer.release { [] }
+callback.done { [2790668158] }
+display.delete_id { [9] }
+ -> surface.attach { [0xf84003a1e0 0 0] }
+ -> surface.damage { [0 0 250 250] }
+ -> surface.frame { [0xf840091260] }
+buffer.release { [] }
+callback.done { [2790668175] }
+display.delete_id { [10] }
+ -> surface.attach { [0xf84003a1e0 0 0] }
+ -> surface.damage { [0 0 250 250] }
+ -> surface.frame { [0xf8400912e0] }
+buffer.release { [] }
+callback.done { [2790668192] }
+display.delete_id { [6] }
+ -> surface.attach { [0xf84003a1e0 0 0] }
+ -> surface.damage { [0 0 250 250] }
+ -> surface.frame { [0xf840091360] }
+buffer.release { [] }
+callback.done { [2790668208] }
+display.delete_id { [9] }
+ -> surface.attach { [0xf84003a1e0 0 0] }
+ -> surface.damage { [0 0 250 250] }
+ -> surface.frame { [0xf8400913e0] }
+buffer.release { [] }
+callback.done { [2790668225] }
+display.delete_id { [10] }
+ -> surface.attach { [0xf84003a1e0 0 0] }
+ -> surface.damage { [0 0 250 250] }
+ -> surface.frame { [0xf840091460] }
+buffer.release { [] }
+callback.done { [2790668242] }
+display.delete_id { [6] }
+ -> surface.attach { [0xf84003a1e0 0 0] }
+ -> surface.damage { [0 0 250 250] }
+ -> surface.frame { [0xf8400914e0] }
+buffer.release { [] }
+callback.done { [2790668258] }
+display.delete_id { [9] }
+ -> surface.attach { [0xf84003a1e0 0 0] }
+ -> surface.damage { [0 0 250 250] }
+ -> surface.frame { [0xf840091560] }
+buffer.release { [] }
+callback.done { [2790668275] }
+display.delete_id { [10] }
+ -> surface.attach { [0xf84003a1e0 0 0] }
+ -> surface.damage { [0 0 250 250] }
+ -> surface.frame { [0xf8400915e0] }
+buffer.release { [] }
+callback.done { [2790668291] }
+display.delete_id { [6] }
+ -> surface.attach { [0xf84003a1e0 0 0] }
+ -> surface.damage { [0 0 250 250] }
+ -> surface.frame { [0xf840091660] }
+buffer.release { [] }
+callback.done { [2790668308] }
+display.delete_id { [9] }
+ -> surface.attach { [0xf84003a1e0 0 0] }
+ -> surface.damage { [0 0 250 250] }
+ -> surface.frame { [0xf8400916e0] }
+buffer.release { [] }
+callback.done { [2790668325] }
+display.delete_id { [10] }
+ -> surface.attach { [0xf84003a1e0 0 0] }
+ -> surface.damage { [0 0 250 250] }
+ -> surface.frame { [0xf840091760] }
+buffer.release { [] }
+callback.done { [2790668341] }
+display.delete_id { [6] }
+ -> surface.attach { [0xf84003a1e0 0 0] }
+ -> surface.damage { [0 0 250 250] }
+ -> surface.frame { [0xf8400917e0] }
+buffer.release { [] }
+callback.done { [2790668358] }
+display.delete_id { [9] }
+ -> surface.attach { [0xf84003a1e0 0 0] }
+ -> surface.damage { [0 0 250 250] }
+ -> surface.frame { [0xf840091c60] }
+buffer.release { [] }
+callback.done { [2790668374] }
+display.delete_id { [10] }
+ -> surface.attach { [0xf84003a1e0 0 0] }
+ -> surface.damage { [0 0 250 250] }
+ -> surface.frame { [0xf840091ce0] }
+buffer.release { [] }
+callback.done { [2790668391] }
+display.delete_id { [6] }
+ -> surface.attach { [0xf84003a1e0 0 0] }
+ -> surface.damage { [0 0 250 250] }
+ -> surface.frame { [0xf840091d60] }
+buffer.release { [] }
+callback.done { [2790668408] }
+display.delete_id { [9] }
+ -> surface.attach { [0xf84003a1e0 0 0] }
+ -> surface.damage { [0 0 250 250] }
+ -> surface.frame { [0xf840091de0] }
+buffer.release { [] }
+callback.done { [2790668424] }
+display.delete_id { [10] }
+ -> surface.attach { [0xf84003a1e0 0 0] }
+ -> surface.damage { [0 0 250 250] }
+ -> surface.frame { [0xf840091e60] }
+buffer.release { [] }
+callback.done { [2790668441] }
+display.delete_id { [6] }
+ -> surface.attach { [0xf84003a1e0 0 0] }
+ -> surface.damage { [0 0 250 250] }
+ -> surface.frame { [0xf840091ee0] }
+buffer.release { [] }
+callback.done { [2790668458] }
+display.delete_id { [9] }
+ -> surface.attach { [0xf84003a1e0 0 0] }
+ -> surface.damage { [0 0 250 250] }
+ -> surface.frame { [0xf840091f60] }
+buffer.release { [] }
+callback.done { [2790668474] }
+display.delete_id { [10] }
+ -> surface.attach { [0xf84003a1e0 0 0] }
+ -> surface.damage { [0 0 250 250] }
+ -> surface.frame { [0xf840091940] }
+buffer.release { [] }
+callback.done { [2790668491] }
+display.delete_id { [6] }
+ -> surface.attach { [0xf84003a1e0 0 0] }
+ -> surface.damage { [0 0 250 250] }
+ -> surface.frame { [0xf8400919c0] }
+buffer.release { [] }
+callback.done { [2790668508] }
+display.delete_id { [9] }
+ -> surface.attach { [0xf84003a1e0 0 0] }
+ -> surface.damage { [0 0 250 250] }
+ -> surface.frame { [0xf840091a40] }
+buffer.release { [] }
+callback.done { [2790668524] }
+display.delete_id { [10] }
+ -> surface.attach { [0xf84003a1e0 0 0] }
+ -> surface.damage { [0 0 250 250] }
+ -> surface.frame { [0xf840091ac0] }
+buffer.release { [] }
+callback.done { [2790668541] }
+display.delete_id { [6] }
+ -> surface.attach { [0xf84003a1e0 0 0] }
+ -> surface.damage { [0 0 250 250] }
+ -> surface.frame { [0xf840091b40] }
+buffer.release { [] }
+callback.done { [2790668557] }
+display.delete_id { [9] }
+ -> surface.attach { [0xf84003a1e0 0 0] }
+ -> surface.damage { [0 0 250 250] }
+ -> surface.frame { [0xf840091bc0] }
+buffer.release { [] }
+callback.done { [2790668574] }
+display.delete_id { [10] }
+ -> surface.attach { [0xf84003a1e0 0 0] }
+ -> surface.damage { [0 0 250 250] }
+ -> surface.frame { [0xf8400a1080] }
+buffer.release { [] }
+callback.done { [2790668591] }
+display.delete_id { [6] }
+ -> surface.attach { [0xf84003a1e0 0 0] }
+ -> surface.damage { [0 0 250 250] }
+ -> surface.frame { [0xf8400a1100] }
+buffer.release { [] }
+callback.done { [2790668607] }
+display.delete_id { [9] }
+ -> surface.attach { [0xf84003a1e0 0 0] }
+ -> surface.damage { [0 0 250 250] }
+ -> surface.frame { [0xf8400a1180] }
+buffer.release { [] }
+callback.done { [2790668624] }
+display.delete_id { [10] }
+ -> surface.attach { [0xf84003a1e0 0 0] }
+ -> surface.damage { [0 0 250 250] }
+ -> surface.frame { [0xf8400a1200] }
+buffer.release { [] }
+callback.done { [2790668641] }
+display.delete_id { [6] }
+ -> surface.attach { [0xf84003a1e0 0 0] }
+ -> surface.damage { [0 0 250 250] }
+ -> surface.frame { [0xf8400a1280] }
+buffer.release { [] }
+callback.done { [2790668657] }
+display.delete_id { [9] }
+ -> surface.attach { [0xf84003a1e0 0 0] }
+ -> surface.damage { [0 0 250 250] }
+ -> surface.frame { [0xf8400a1300] }
+buffer.release { [] }
+callback.done { [2790668674] }
+display.delete_id { [10] }
+ -> surface.attach { [0xf84003a1e0 0 0] }
+ -> surface.damage { [0 0 250 250] }
+ -> surface.frame { [0xf8400a1380] }
+buffer.release { [] }
+callback.done { [2790668690] }
+display.delete_id { [6] }
+ -> surface.attach { [0xf84003a1e0 0 0] }
+ -> surface.damage { [0 0 250 250] }
+ -> surface.frame { [0xf8400a1800] }
+buffer.release { [] }
+callback.done { [2790668707] }
+display.delete_id { [9] }
+ -> surface.attach { [0xf84003a1e0 0 0] }
+ -> surface.damage { [0 0 250 250] }
+ -> surface.frame { [0xf8400a1540] }
+buffer.release { [] }
+callback.done { [2790668724] }
+display.delete_id { [10] }
+ -> surface.attach { [0xf84003a1e0 0 0] }
+ -> surface.damage { [0 0 250 250] }
+ -> surface.frame { [0xf8400a15c0] }
+buffer.release { [] }
+callback.done { [2790668740] }
+display.delete_id { [6] }
+ -> surface.attach { [0xf84003a1e0 0 0] }
+ -> surface.damage { [0 0 250 250] }
+ -> surface.frame { [0xf8400a1640] }
+buffer.release { [] }
+callback.done { [2790668757] }
+display.delete_id { [9] }
+ -> surface.attach { [0xf84003a1e0 0 0] }
+ -> surface.damage { [0 0 250 250] }
+ -> surface.frame { [0xf8400a16c0] }
+buffer.release { [] }
+callback.done { [2790668774] }
+display.delete_id { [10] }
+ -> surface.attach { [0xf84003a1e0 0 0] }
+ -> surface.damage { [0 0 250 250] }
+ -> surface.frame { [0xf8400a1740] }
+buffer.release { [] }
+callback.done { [2790668790] }
+display.delete_id { [6] }
+ -> surface.attach { [0xf84003a1e0 0 0] }
+ -> surface.damage { [0 0 250 250] }
+ -> surface.frame { [0xf8400a17c0] }
+buffer.release { [] }
+callback.done { [2790668807] }
+display.delete_id { [9] }
+ -> surface.attach { [0xf84003a1e0 0 0] }
+ -> surface.damage { [0 0 250 250] }
+ -> surface.frame { [0xf8400a1c40] }
+buffer.release { [] }
+callback.done { [2790668823] }
+display.delete_id { [10] }
+ -> surface.attach { [0xf84003a1e0 0 0] }
+ -> surface.damage { [0 0 250 250] }
+ -> surface.frame { [0xf8400a1cc0] }
+buffer.release { [] }
+callback.done { [2790668840] }
+display.delete_id { [6] }
+ -> surface.attach { [0xf84003a1e0 0 0] }
+ -> surface.damage { [0 0 250 250] }
+ -> surface.frame { [0xf8400a1d40] }
+buffer.release { [] }
+callback.done { [2790668857] }
+display.delete_id { [9] }
+ -> surface.attach { [0xf84003a1e0 0 0] }
+ -> surface.damage { [0 0 250 250] }
+ -> surface.frame { [0xf8400a1dc0] }
+buffer.release { [] }
+callback.done { [2790668873] }
+display.delete_id { [10] }
+ -> surface.attach { [0xf84003a1e0 0 0] }
+ -> surface.damage { [0 0 250 250] }
+ -> surface.frame { [0xf8400a1e40] }
+buffer.release { [] }
+callback.done { [2790668890] }
+display.delete_id { [6] }
+ -> surface.attach { [0xf84003a1e0 0 0] }
+ -> surface.damage { [0 0 250 250] }
+ -> surface.frame { [0xf8400a16a0] }
+buffer.release { [] }
+callback.done { [2790668907] }
+display.delete_id { [9] }
+ -> surface.attach { [0xf84003a1e0 0 0] }
+ -> surface.damage { [0 0 250 250] }
+ -> surface.frame { [0xf8400a15a0] }
+buffer.release { [] }
+callback.done { [2790668923] }
+display.delete_id { [10] }
+ -> surface.attach { [0xf84003a1e0 0 0] }
+ -> surface.damage { [0 0 250 250] }
+ -> surface.frame { [0xf8400a14c0] }
+buffer.release { [] }
+callback.done { [2790668940] }
+display.delete_id { [6] }
+ -> surface.attach { [0xf84003a1e0 0 0] }
+ -> surface.damage { [0 0 250 250] }
+ -> surface.frame { [0xf8400a1440] }
+buffer.release { [] }
+callback.done { [2790668956] }
+display.delete_id { [9] }
+ -> surface.attach { [0xf84003a1e0 0 0] }
+ -> surface.damage { [0 0 250 250] }
+ -> surface.frame { [0xf8400a13c0] }
+buffer.release { [] }
+callback.done { [2790668973] }
+display.delete_id { [10] }
+ -> surface.attach { [0xf84003a1e0 0 0] }
+ -> surface.damage { [0 0 250 250] }
+ -> surface.frame { [0xf8400a12c0] }
+buffer.release { [] }
+callback.done { [2790668990] }
+display.delete_id { [6] }
+ -> surface.attach { [0xf84003a1e0 0 0] }
+ -> surface.damage { [0 0 250 250] }
+ -> surface.frame { [0xf8400a11c0] }
+buffer.release { [] }
+callback.done { [2790669006] }
+display.delete_id { [9] }
+ -> surface.attach { [0xf84003a1e0 0 0] }
+ -> surface.damage { [0 0 250 250] }
+ -> surface.frame { [0xf8400a1a40] }
+buffer.release { [] }
+callback.done { [2790669023] }
+display.delete_id { [10] }
+ -> surface.attach { [0xf84003a1e0 0 0] }
+ -> surface.damage { [0 0 250 250] }
+ -> surface.frame { [0xf8400a1ac0] }
+buffer.release { [] }
+callback.done { [2790669040] }
+display.delete_id { [6] }
+ -> surface.attach { [0xf84003a1e0 0 0] }
+ -> surface.damage { [0 0 250 250] }
+ -> surface.frame { [0xf8400a1b40] }
+buffer.release { [] }
+callback.done { [2790669056] }
+display.delete_id { [9] }
+ -> surface.attach { [0xf84003a1e0 0 0] }
+ -> surface.damage { [0 0 250 250] }
+ -> surface.frame { [0xf8400a1bc0] }
+buffer.release { [] }
+callback.done { [2790669073] }
+display.delete_id { [10] }
+ -> surface.attach { [0xf84003a1e0 0 0] }
+ -> surface.damage { [0 0 250 250] }
+ -> surface.frame { [0xf8400a1ee0] }
+buffer.release { [] }
+callback.done { [2790669089] }
+display.delete_id { [6] }
+ -> surface.attach { [0xf84003a1e0 0 0] }
+ -> surface.damage { [0 0 250 250] }
+ -> surface.frame { [0xf8400a1f60] }
+buffer.release { [] }
+callback.done { [2790669106] }
+display.delete_id { [9] }
+ -> surface.attach { [0xf84003a1e0 0 0] }
+ -> surface.damage { [0 0 250 250] }
+ -> surface.frame { [0xf8400a1060] }
+buffer.release { [] }
+callback.done { [2790669123] }
+display.delete_id { [10] }
+ -> surface.attach { [0xf84003a1e0 0 0] }
+ -> surface.damage { [0 0 250 250] }
+ -> surface.frame { [0xf840091240] }
+buffer.release { [] }
+callback.done { [2790669139] }
+display.delete_id { [6] }
+ -> surface.attach { [0xf84003a1e0 0 0] }
+ -> surface.damage { [0 0 250 250] }
+ -> surface.frame { [0xf840091340] }
+buffer.release { [] }
+callback.done { [2790669156] }
+display.delete_id { [9] }
+ -> surface.attach { [0xf84003a1e0 0 0] }
+ -> surface.damage { [0 0 250 250] }
+ -> surface.frame { [0xf840091440] }
+buffer.release { [] }
+callback.done { [2790669173] }
+display.delete_id { [10] }
+ -> surface.attach { [0xf84003a1e0 0 0] }
+ -> surface.damage { [0 0 250 250] }
+ -> surface.frame { [0xf840091540] }
+buffer.release { [] }
+callback.done { [2790669189] }
+display.delete_id { [6] }
+ -> surface.attach { [0xf84003a1e0 0 0] }
+ -> surface.damage { [0 0 250 250] }
+ -> surface.frame { [0xf840091640] }
+buffer.release { [] }
+callback.done { [2790669206] }
+display.delete_id { [9] }
+ -> surface.attach { [0xf84003a1e0 0 0] }
+ -> surface.damage { [0 0 250 250] }
+ -> surface.frame { [0xf840091740] }
+buffer.release { [] }
+callback.done { [2790669223] }
+display.delete_id { [10] }
+ -> surface.attach { [0xf84003a1e0 0 0] }
+ -> surface.damage { [0 0 250 250] }
+ -> surface.frame { [0xf840091820] }
+buffer.release { [] }
+callback.done { [2790669239] }
+display.delete_id { [6] }
+ -> surface.attach { [0xf84003a1e0 0 0] }
+ -> surface.damage { [0 0 250 250] }
+ -> surface.frame { [0xf8400918a0] }
+buffer.release { [] }
+callback.done { [2790669256] }
+display.delete_id { [9] }
+ -> surface.attach { [0xf84003a1e0 0 0] }
+ -> surface.damage { [0 0 250 250] }
+ -> surface.frame { [0xf840091920] }
+buffer.release { [] }
+callback.done { [2790669272] }
+display.delete_id { [10] }
+ -> surface.attach { [0xf84003a1e0 0 0] }
+ -> surface.damage { [0 0 250 250] }
+ -> surface.frame { [0xf8400a1c00] }
+buffer.release { [] }
+callback.done { [2790669289] }
+display.delete_id { [6] }
+ -> surface.attach { [0xf84003a1e0 0 0] }
+ -> surface.damage { [0 0 250 250] }
+ -> surface.frame { [0xf840091a80] }
+buffer.release { [] }
+callback.done { [2790669306] }
+display.delete_id { [9] }
+ -> surface.attach { [0xf84003a1e0 0 0] }
+ -> surface.damage { [0 0 250 250] }
+ -> surface.frame { [0xf840091b80] }
+buffer.release { [] }
+callback.done { [2790669322] }
+display.delete_id { [10] }
+ -> surface.attach { [0xf84003a1e0 0 0] }
+ -> surface.damage { [0 0 250 250] }
+ -> surface.frame { [0xf8400a1d80] }
+buffer.release { [] }
+callback.done { [2790669339] }
+display.delete_id { [6] }
+ -> surface.attach { [0xf84003a1e0 0 0] }
+ -> surface.damage { [0 0 250 250] }
+ -> surface.frame { [0xf8400a1e80] }
+buffer.release { [] }
+callback.done { [2790669355] }
+display.delete_id { [9] }
+ -> surface.attach { [0xf84003a1e0 0 0] }
+ -> surface.damage { [0 0 250 250] }
+ -> surface.frame { [0xf840091d20] }
+buffer.release { [] }
+callback.done { [2790669372] }
+display.delete_id { [10] }
+ -> surface.attach { [0xf84003a1e0 0 0] }
+ -> surface.damage { [0 0 250 250] }
+ -> surface.frame { [0xf840091e20] }
+buffer.release { [] }
+callback.done { [2790669389] }
+display.delete_id { [6] }
+ -> surface.attach { [0xf84003a1e0 0 0] }
+ -> surface.damage { [0 0 250 250] }
+ -> surface.frame { [0xf840091f20] }
+buffer.release { [] }
+callback.done { [2790669405] }
+display.delete_id { [9] }
+ -> surface.attach { [0xf84003a1e0 0 0] }
+ -> surface.damage { [0 0 250 250] }
+ -> surface.frame { [0xf8400911a0] }
+buffer.release { [] }
+callback.done { [2790669422] }
+display.delete_id { [10] }
+ -> surface.attach { [0xf84003a1e0 0 0] }
+ -> surface.damage { [0 0 250 250] }
+ -> surface.frame { [0xf8400850a0] }
+buffer.release { [] }
+callback.done { [2790669439] }
+display.delete_id { [6] }
+ -> surface.attach { [0xf84003a1e0 0 0] }
+ -> surface.damage { [0 0 250 250] }
+ -> surface.frame { [0xf840085120] }
+buffer.release { [] }
+callback.done { [2790669455] }
+display.delete_id { [9] }
+ -> surface.attach { [0xf84003a1e0 0 0] }
+ -> surface.damage { [0 0 250 250] }
+ -> surface.frame { [0xf8400851a0] }
+buffer.release { [] }
+callback.done { [2790669472] }
+display.delete_id { [10] }
+ -> surface.attach { [0xf84003a1e0 0 0] }
+ -> surface.damage { [0 0 250 250] }
+ -> surface.frame { [0xf840085220] }
+buffer.release { [] }
+callback.done { [2790669488] }
+display.delete_id { [6] }
+ -> surface.attach { [0xf84003a1e0 0 0] }
+ -> surface.damage { [0 0 250 250] }
+ -> surface.frame { [0xf8400852a0] }
+buffer.release { [] }
+callback.done { [2790669505] }
+display.delete_id { [9] }
+ -> surface.attach { [0xf84003a1e0 0 0] }
+ -> surface.damage { [0 0 250 250] }
+ -> surface.frame { [0xf840085320] }
+buffer.release { [] }
+callback.done { [2790669522] }
+display.delete_id { [10] }
+ -> surface.attach { [0xf84003a1e0 0 0] }
+ -> surface.damage { [0 0 250 250] }
+ -> surface.frame { [0xf8400853a0] }
+buffer.release { [] }
+callback.done { [2790669538] }
+display.delete_id { [6] }
+ -> surface.attach { [0xf84003a1e0 0 0] }
+ -> surface.damage { [0 0 250 250] }
+ -> surface.frame { [0xf8400854e0] }
+buffer.release { [] }
+callback.done { [2790669555] }
+display.delete_id { [9] }
+ -> surface.attach { [0xf84003a1e0 0 0] }
+ -> surface.damage { [0 0 250 250] }
+ -> surface.frame { [0xf840085560] }
+buffer.release { [] }
+callback.done { [2790669572] }
+display.delete_id { [10] }
+ -> surface.attach { [0xf84003a1e0 0 0] }
+ -> surface.damage { [0 0 250 250] }
+ -> surface.frame { [0xf8400855e0] }
+buffer.release { [] }
+callback.done { [2790669588] }
+display.delete_id { [6] }
+ -> surface.attach { [0xf84003a1e0 0 0] }
+ -> surface.damage { [0 0 250 250] }
+ -> surface.frame { [0xf840085660] }
+buffer.release { [] }
+callback.done { [2790669605] }
+display.delete_id { [9] }
+ -> surface.attach { [0xf84003a1e0 0 0] }
+ -> surface.damage { [0 0 250 250] }
+ -> surface.frame { [0xf8400856e0] }
+buffer.release { [] }
+callback.done { [2790669622] }
+display.delete_id { [10] }
+ -> surface.attach { [0xf84003a1e0 0 0] }
+ -> surface.damage { [0 0 250 250] }
+ -> surface.frame { [0xf8400857e0] }
+buffer.release { [] }
+callback.done { [2790669638] }
+display.delete_id { [6] }
+ -> surface.attach { [0xf84003a1e0 0 0] }
+ -> surface.damage { [0 0 250 250] }
+ -> surface.frame { [0xf840085860] }
+buffer.release { [] }
+callback.done { [2790669655] }
+display.delete_id { [9] }
+ -> surface.attach { [0xf84003a1e0 0 0] }
+ -> surface.damage { [0 0 250 250] }
+ -> surface.frame { [0xf840085f40] }
+buffer.release { [] }
+callback.done { [2790669671] }
+display.delete_id { [10] }
+ -> surface.attach { [0xf84003a1e0 0 0] }
+ -> surface.damage { [0 0 250 250] }
+ -> surface.frame { [0xf840085fc0] }
+buffer.release { [] }
+callback.done { [2790669688] }
+display.delete_id { [6] }
+ -> surface.attach { [0xf84003a1e0 0 0] }
+ -> surface.damage { [0 0 250 250] }
+ -> surface.frame { [0xf840085ac0] }
+buffer.release { [] }
+callback.done { [2790669705] }
+display.delete_id { [9] }
+ -> surface.attach { [0xf84003a1e0 0 0] }
+ -> surface.damage { [0 0 250 250] }
+ -> surface.frame { [0xf84003ac80] }
+buffer.release { [] }
+callback.done { [2790669721] }
+display.delete_id { [10] }
+ -> surface.attach { [0xf84003a1e0 0 0] }
+ -> surface.damage { [0 0 250 250] }
+ -> surface.frame { [0xf840085ba0] }
+buffer.release { [] }
+callback.done { [2790669738] }
+display.delete_id { [6] }
+ -> surface.attach { [0xf84003a1e0 0 0] }
+ -> surface.damage { [0 0 250 250] }
+ -> surface.frame { [0xf84003ad20] }
+buffer.release { [] }
+callback.done { [2790669754] }
+display.delete_id { [9] }
+ -> surface.attach { [0xf84003a1e0 0 0] }
+ -> surface.damage { [0 0 250 250] }
+ -> surface.frame { [0xf84003ada0] }
+buffer.release { [] }
+callback.done { [2790669771] }
+display.delete_id { [10] }
+ -> surface.attach { [0xf84003a1e0 0 0] }
+ -> surface.damage { [0 0 250 250] }
+ -> surface.frame { [0xf84003ae20] }
+buffer.release { [] }
+callback.done { [2790669788] }
+display.delete_id { [6] }
+ -> surface.attach { [0xf84003a1e0 0 0] }
+ -> surface.damage { [0 0 250 250] }
+ -> surface.frame { [0xf84003aea0] }
+buffer.release { [] }
+callback.done { [2790669804] }
+display.delete_id { [9] }
+ -> surface.attach { [0xf84003a1e0 0 0] }
+ -> surface.damage { [0 0 250 250] }
+ -> surface.frame { [0xf84003af20] }
+buffer.release { [] }
+callback.done { [2790669821] }
+display.delete_id { [10] }
+ -> surface.attach { [0xf84003a1e0 0 0] }
+ -> surface.damage { [0 0 250 250] }
+ -> surface.frame { [0xf84003afa0] }
+buffer.release { [] }
+callback.done { [2790669838] }
+display.delete_id { [6] }
+ -> surface.attach { [0xf84003a1e0 0 0] }
+ -> surface.damage { [0 0 250 250] }
+ -> surface.frame { [0xf84003a840] }
+buffer.release { [] }
+callback.done { [2790669854] }
+display.delete_id { [9] }
+ -> surface.attach { [0xf84003a1e0 0 0] }
+ -> surface.damage { [0 0 250 250] }
+ -> surface.frame { [0xf84003a8c0] }
+buffer.release { [] }
+callback.done { [2790669871] }
+display.delete_id { [10] }
+ -> surface.attach { [0xf84003a1e0 0 0] }
+ -> surface.damage { [0 0 250 250] }
+ -> surface.frame { [0xf84003a940] }
+buffer.release { [] }
+callback.done { [2790669887] }
+display.delete_id { [6] }
+ -> surface.attach { [0xf84003a1e0 0 0] }
+ -> surface.damage { [0 0 250 250] }
+ -> surface.frame { [0xf840085e60] }
+buffer.release { [] }
+callback.done { [2790669904] }
+display.delete_id { [9] }
+ -> surface.attach { [0xf84003a1e0 0 0] }
+ -> surface.damage { [0 0 250 250] }
+ -> surface.frame { [0xf840085ee0] }
+buffer.release { [] }
+callback.done { [2790669921] }
+display.delete_id { [10] }
+ -> surface.attach { [0xf84003a1e0 0 0] }
+ -> surface.damage { [0 0 250 250] }
+ -> surface.frame { [0xf84003aa00] }
+buffer.release { [] }
+callback.done { [2790669937] }
+display.delete_id { [6] }
+ -> surface.attach { [0xf84003a1e0 0 0] }
+ -> surface.damage { [0 0 250 250] }
+ -> surface.frame { [0xf84003aa80] }
+buffer.release { [] }
+callback.done { [2790669954] }
+display.delete_id { [9] }
+ -> surface.attach { [0xf84003a1e0 0 0] }
+ -> surface.damage { [0 0 250 250] }
+ -> surface.frame { [0xf84003ab00] }
+buffer.release { [] }
+callback.done { [2790669971] }
+display.delete_id { [10] }
+ -> surface.attach { [0xf84003a1e0 0 0] }
+ -> surface.damage { [0 0 250 250] }
+ -> surface.frame { [0xf84009b020] }
+buffer.release { [] }
+callback.done { [2790669987] }
+display.delete_id { [6] }
+ -> surface.attach { [0xf84003a1e0 0 0] }
+ -> surface.damage { [0 0 250 250] }
+ -> surface.frame { [0xf84009b0a0] }
+buffer.release { [] }
+callback.done { [2790670004] }
+display.delete_id { [9] }
+ -> surface.attach { [0xf84003a1e0 0 0] }
+ -> surface.damage { [0 0 250 250] }
+ -> surface.frame { [0xf84009b120] }
+buffer.release { [] }
+callback.done { [2790670020] }
+display.delete_id { [10] }
+ -> surface.attach { [0xf84003a1e0 0 0] }
+ -> surface.damage { [0 0 250 250] }
+ -> surface.frame { [0xf84009b1a0] }
+buffer.release { [] }
+callback.done { [2790670037] }
+display.delete_id { [6] }
+ -> surface.attach { [0xf84003a1e0 0 0] }
+ -> surface.damage { [0 0 250 250] }
+ -> surface.frame { [0xf84009b220] }
+buffer.release { [] }
+callback.done { [2790670054] }
+display.delete_id { [9] }
+ -> surface.attach { [0xf84003a1e0 0 0] }
+ -> surface.damage { [0 0 250 250] }
+ -> surface.frame { [0xf84009b2a0] }
+buffer.release { [] }
+callback.done { [2790670070] }
+display.delete_id { [10] }
+ -> surface.attach { [0xf84003a1e0 0 0] }
+ -> surface.damage { [0 0 250 250] }
+ -> surface.frame { [0xf84009b320] }
+buffer.release { [] }
+callback.done { [2790670087] }
+display.delete_id { [6] }
+ -> surface.attach { [0xf84003a1e0 0 0] }
+ -> surface.damage { [0 0 250 250] }
+ -> surface.frame { [0xf84009b3a0] }
+buffer.release { [] }
+callback.done { [2790670104] }
+display.delete_id { [9] }
+ -> surface.attach { [0xf84003a1e0 0 0] }
+ -> surface.damage { [0 0 250 250] }
+ -> surface.frame { [0xf84009b820] }
+buffer.release { [] }
+callback.done { [2790670120] }
+display.delete_id { [10] }
+ -> surface.attach { [0xf84003a1e0 0 0] }
+ -> surface.damage { [0 0 250 250] }
+ -> surface.frame { [0xf84009b4a0] }
+buffer.release { [] }
+callback.done { [2790670137] }
+display.delete_id { [6] }
+ -> surface.attach { [0xf84003a1e0 0 0] }
+ -> surface.damage { [0 0 250 250] }
+ -> surface.frame { [0xf84009b520] }
+buffer.release { [] }
+callback.done { [2790670153] }
+display.delete_id { [9] }
+ -> surface.attach { [0xf84003a1e0 0 0] }
+ -> surface.damage { [0 0 250 250] }
+ -> surface.frame { [0xf84009b5a0] }
+buffer.release { [] }
+callback.done { [2790670170] }
+display.delete_id { [10] }
+ -> surface.attach { [0xf84003a1e0 0 0] }
+ -> surface.damage { [0 0 250 250] }
+ -> surface.frame { [0xf84009b620] }

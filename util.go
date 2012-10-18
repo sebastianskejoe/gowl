@@ -78,17 +78,16 @@ func printRequest(name string, obj Object, req string, args ...interface{}) {
 }
 
 // Display funcs
-func delete_id_listener(c chan interface{}) {
+func delete_id_listener(c chan DisplayDeleteId) {
 	for e := range c {
-		ev := e.(DisplayDeleteId)
-		removeObject(int32(ev.Id))
+		removeObject(int32(e.Id))
 	}
 }
 
-func error_listener(c chan interface{}) {
+func error_listener(c chan DisplayError) {
 	for e := range c {
-		ev := e.(DisplayError)
-		fmt.Println("Error:", ev.ObjectId.Id(), ev.Code, ev.Message)
+		fmt.Println("Error:", e.ObjectId.Id(), e.Code, e.Message)
+        os.Exit(0)
 	}
 }
 
@@ -111,9 +110,9 @@ func (d *Display) Connect() error {
 	}
 	appendObject(d)
 
-	delchan := make(chan interface{})
+	delchan := make(chan DisplayDeleteId)
 	d.AddDeleteIdListener(delchan)
-	errchan := make(chan interface{})
+	errchan := make(chan DisplayError)
 	d.AddErrorListener(errchan)
 	go delete_id_listener(delchan)
 	go error_listener(errchan)

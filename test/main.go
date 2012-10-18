@@ -5,10 +5,12 @@ import (
 	"github.com/sebastianskejoe/gowl"
 	"strings"
 	"syscall"
+    "time"
 )
 
 type Display struct {
 	display       *gowl.Display
+    registry      *gowl.Registry
 	compositor    *gowl.Compositor
 	shm           *gowl.Shm
 	shell         *gowl.Shell
@@ -27,11 +29,14 @@ var (
 func main() {
 	display := new(Display)
 	display.display = gowl.NewDisplay()
+    display.registry = gowl.NewRegistry()
+
 	err := display.display.Connect()
 	if err != nil {
 		fmt.Println("Couldn't connect:", err)
 		return
 	}
+
 	display.compositor = gowl.NewCompositor()
 	display.shm = gowl.NewShm()
 	display.shell = gowl.NewShell()
@@ -40,17 +45,10 @@ func main() {
 	display.surface = gowl.NewSurface()
 	display.shell_surface = gowl.NewShellSurface()
 
-	globchan := make(chan interface{})
+    display.display.GetRegistry(display.registry)
+	globchan := make(chan gowl.RegistryGlobal)
 	go display.globalListener(globchan)
-	display.display.AddGlobalListener(globchan)
-
-	err = display.display.Iterate()
-	if err != nil {
-        fmt.Println("Error iterating:",err)
-		return
-	}
-
-	// Sync
+	display.registry.AddGlobalListener(globchan)
 	waitForSync(display.display)
 
 	// create pool
@@ -73,6 +71,7 @@ func main() {
 	display.shell_surface.SetToplevel()
 	display.shell_surface.SetTitle("Gowl test window")
 
+	display.surface.Attach(display.buffer, 0, 0)
 	redraw(display)
 
 	display.buffer.Destroy()
@@ -81,24 +80,22 @@ func main() {
 
 //// Event listeners
 func Pong(ss *gowl.ShellSurface) {
-	c := make(chan interface{})
+	c := make(chan gowl.ShellSurfacePing)
 	ss.AddPingListener(c)
-	for p := range c {
-		ping := p.(gowl.ShellSurfacePing)
+	for ping := range c {
 		ss.Pong(ping.Serial)
 	}
 }
 
-func (d *Display) globalListener(c chan interface{}) {
-	for e := range c {
-		glob := e.(gowl.DisplayGlobal)
+func (d *Display) globalListener(c chan gowl.RegistryGlobal) {
+	for glob := range c {
 		switch strings.TrimSpace(glob.Iface) {
 		case "wl_shell":
-			d.display.Bind(glob.Name, glob.Iface, glob.Version, d.shell)
+            d.registry.Bind(glob.Name, glob.Iface, glob.Version, d.shell)
 		case "wl_shm":
-			d.display.Bind(glob.Name, glob.Iface, glob.Version, d.shm)
+			d.registry.Bind(glob.Name, glob.Iface, glob.Version, d.shm)
 		case "wl_compositor":
-			d.display.Bind(glob.Name, glob.Iface, glob.Version, d.compositor)
+			d.registry.Bind(glob.Name, glob.Iface, glob.Version, d.compositor)
 		}
 	}
 }
@@ -115,19 +112,22 @@ func redraw(display *Display) {
 	for i, _ := range display.data {
 		display.data[i] = byte(col)
 	}
-	display.surface.Attach(display.buffer, 0, 0)
+
 	display.surface.Damage(0, 0, 250, 250)
 	cb := gowl.NewCallback()
-	done := make(chan interface{})
+	done := make(chan gowl.CallbackDone)
 	cb.AddDoneListener(done)
 	display.surface.Frame(cb)
+    display.surface.Commit()
 	func() {
 		for {
 			select {
 			case <-done:
 				redraw(display)
 			default:
-				display.display.Iterate()
+                display.display.Iterate()
+                c := time.Tick(time.Second/100)
+                <-c
 			}
 		}
 	}()
@@ -135,7 +135,7 @@ func redraw(display *Display) {
 
 func waitForSync(display *gowl.Display) {
 	cb := gowl.NewCallback()
-	done := make(chan interface{})
+	done := make(chan gowl.CallbackDone)
 	cb.AddDoneListener(done)
 	display.Sync(cb)
 	func() {

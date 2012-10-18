@@ -15,7 +15,10 @@ import (
 var replacements map[string]string
 
 type Interface struct {
-	name string
+	rawName string // raw
+    priName string
+    capName string // capitalized interface name
+    varName string // variable name of interface (the d in "d *Display")
 	requests []RequestEvent
 	events []RequestEvent
 	enum []Enum
@@ -23,12 +26,16 @@ type Interface struct {
 
 type RequestEvent struct {
 	name string
+    capName string
+    listenName string
 	opcode int
 	args []Arg
+    signature *bytes.Buffer
 }
 
 type Arg struct {
 	name string
+    capName string
 	t string
 	iface string
 }
@@ -70,14 +77,38 @@ func main() {
 	}
 
 	for _,val := range ifaces {
-		content, path := PrintInterface(val)
-		file, err := os.Create(path)
+        buffer := new(bytes.Buffer)
+		PrintInterface(val, buffer)
+        fmt.Fprintf(buffer, `
+////
+//// REQUESTS
+////
+`)
+        PrintRequests(val, buffer)
+        fmt.Fprintf(buffer, `
+////
+//// EVENTS
+////
+`)
+        PrintEvents(val, buffer)
+		file, err := os.Create(fmt.Sprintf("../%s.go", val.capName))
 		if err != nil {
 			fmt.Println(err)
 			return
 		}
-		file.Write(content.Bytes())
+		file.Write(buffer.Bytes())
+        file.Close()
 	}
+
+    buffer := new(bytes.Buffer)
+    PrintSignatures(ifaces, buffer)
+    file, err := os.Create("../Signatures.go")
+    if err != nil {
+        fmt.Println(err)
+        return
+    }
+    file.Write(buffer.Bytes())
+    file.Close()
 	return
 }
 
@@ -85,7 +116,11 @@ func DecodeInterface(decoder *xml.Decoder, attr []xml.Attr) (iface Interface) {
 	// Setup interface
 	for _,val := range attr {
 		if val.Name.Local == "name" {
-			iface.name = val.Value
+			iface.rawName = val.Value
+            iname := strings.Replace(iface.rawName, "wl_", "", 1)
+            iface.capName = makeInterfaceName(iname)
+            iface.varName = iname[0:1]
+            iface.priName = fmt.Sprintf("%s%s", strings.ToLower(iface.capName[0:1]), iface.capName[1:])
 		}
 	}
 
@@ -120,8 +155,12 @@ func DecodeRequest(decoder *xml.Decoder, attr []xml.Attr) (req RequestEvent) {
 	for _,val := range attr {
 		if val.Name.Local == "name" {
 			req.name = val.Value
+            iname := strings.Replace(req.name, "wl_", "", 1)
+            req.capName = makeInterfaceName(iname)
 		}
 	}
+
+    req.signature = new(bytes.Buffer)
 
 	// parse args
 	for token,err := decoder.Token() ; err == nil ; token,err = decoder.Token() {
@@ -132,13 +171,14 @@ func DecodeRequest(decoder *xml.Decoder, attr []xml.Attr) (req RequestEvent) {
 				for _,val := range e.Attr {
 					switch val.Name.Local {
 					case "name":
-						arg.name = val.Value
+						arg.name = fixVarName(val.Value)
 						break
 					case "type":
-						arg.t = val.Value
+                        arg.t = val.Value
+                        fmt.Fprintf(req.signature, "%s", getArgSignature(arg))
 						break
 					case "interface":
-						arg.iface = val.Value
+						arg.iface = makeInterfaceName(val.Value)
 						break
 					}
 				}
@@ -160,6 +200,8 @@ func DecodeEvent(decoder *xml.Decoder, attr []xml.Attr) (ev RequestEvent) {
 	for _,val := range attr {
 		if val.Name.Local == "name" {
 			ev.name = val.Value
+            ev.capName = makeInterfaceName(ev.name)
+            ev.listenName = fmt.Sprintf("%s%s",strings.ToLower(ev.capName[0:1]), ev.capName[1:])
 		}
 	}
 
@@ -172,7 +214,8 @@ func DecodeEvent(decoder *xml.Decoder, attr []xml.Attr) (ev RequestEvent) {
 				for _,val := range e.Attr {
 					switch val.Name.Local {
 					case "name":
-						arg.name = val.Value
+						arg.name = fixVarName(val.Value)
+                        arg.capName = makeInterfaceName(arg.name)
 						break
 					case "type":
 						arg.t = val.Value
@@ -195,247 +238,58 @@ func DecodeEvent(decoder *xml.Decoder, attr []xml.Attr) (ev RequestEvent) {
 	return
 }
 
-func PrintInterface(iface Interface) (buf *bytes.Buffer, path string)  {
-	buf = new(bytes.Buffer)
+func PrintInterface(iface Interface, buffer *bytes.Buffer) {
+    // Make listener strings
+    makelisteners := make([]string, 0, len(iface.events))
+    listeners := make([]string, 0, len(iface.events))
+    appends := make([]string, 0, len(iface.events))
+    for _,event := range iface.events {
+        makelisteners = append(makelisteners, fmt.Sprintf(
+`%s.%sListeners = make([]chan %s%s, 0)`,
+        iface.varName, event.listenName, iface.capName, event.capName))
 
-	// Make a proper interface name
-	iname := strings.Replace(iface.name, "wl_", "", 1)
-	tiname := makeInterfaceName(iname)
-	vname := iname[0:1]
-	buf.WriteString("package gowl")
-	if len(iface.events) > 0 {
-		buf.WriteString(`
+        listeners = append(listeners, fmt.Sprintf(
+`%sListeners []chan %s%s`,
+        event.listenName, iface.capName, event.capName))
+
+        appends = append(appends, fmt.Sprintf(
+`%s.events = append(%s.events, %s%s)`,
+        iface.varName, iface.varName, iface.priName, event.capName))
+    }
+
+    makelistener := strings.Join(makelisteners, "\n\t")
+    listener := strings.Join(listeners, "\n\t")
+    appendstr := strings.Join(appends, "\n\t")
+
+	fmt.Fprintf(buffer,
+`package gowl
 
 import (
 	"bytes"
 )
 
-var _ bytes.Buffer`)
-	}
-	buf.WriteString(fmt.Sprintf(`
+var _ bytes.Buffer
 
 type %s struct {
-//	*WlObject
 	id int32
-	listeners map[int16][]chan interface{}
-	events []func (%s *%s, msg message)
+    %s
+	events []func(%s *%s, msg message) error
+    name string
 }
 
-//// Requests`, tiname, vname, tiname))
-	path = fmt.Sprintf("../%s.go", iname)
+func New%s() (%s *%s) {
+	%s = new(%s)
+    %s.name = "%s"
+    %s
 
-	for opcode,req := range iface.requests {
-		argstrs := make([]string, 0)
-		argnames := make([]string, 0)
-		argnames = append(argnames, fmt.Sprint("\"",req.name,"\""))
-		for _,arg := range req.args {
-			argstrs = append(argstrs, fmt.Sprintf("%s %s", fixVarName(arg.name), getType(arg.t, arg.iface)))
-			var an string
-			if arg.t == "object" {
-				an = fmt.Sprintf("%s.Id()", fixVarName(arg.name))
-			} else if arg.t == "new_id" {
-				an = fmt.Sprintf("\"new id\", %s.Id()", fixVarName(arg.name))
-			} else {
-				an = fixVarName(arg.name)
-			}
-			argnames = append(argnames, an)
-		}
-		argstr := strings.Join(argstrs, ", ")
-		argname := strings.Join(argnames, ", ")
-		// Make func header
-		buf.WriteString(fmt.Sprintf(`
-func (%s *%s) %s (%s) {`, vname, tiname, makeInterfaceName(req.name), argstr))
-
-		// Make func body
-		buf.WriteString(fmt.Sprintf(`
-	msg := newMessage(%s, %d)
-`, vname,opcode))
-		for _,arg := range req.args {
-			name := fixVarName(arg.name)
-			switch arg.t {
-			case "uint","int", "fixed":
-				buf.WriteString(fmt.Sprintf("\twriteInteger(msg,%s)\n", name))
-			case "string":
-				buf.WriteString(fmt.Sprintf("\twriteString(msg,[]byte(%s))\n", name))
-			case "object":
-				buf.WriteString(fmt.Sprintf("\twriteInteger(msg,%s.Id())\n", name))
-			case "new_id":
-				buf.WriteString(fmt.Sprintf(`	appendObject(%s)
-	writeInteger(msg,%s.Id())
-`, name, name))
-			case "fd":
-				buf.WriteString(fmt.Sprintf("\twriteFd(msg,%s)\n", name))
-			default:
-				buf.WriteString(fmt.Sprintf("\twriteUnknown(%s)\n", arg.t))
-			}
-		}
-
-		buf.WriteString(fmt.Sprintf(`
-	sendmsg(msg)
-	printRequest("%s", %s, %s)
+    %s
+	return
 }
-`, iname, vname, argname))
-	}
 
-	//// EVENTS
-	// HandleEvent
-	buf.WriteString(fmt.Sprintf(`
-//// Events
 func (%s *%s) HandleEvent(msg message) {
 	if %s.events[msg.opcode] != nil {
 		%s.events[msg.opcode](%s, msg)
 	}
-}
-`, vname, tiname, vname, vname, vname))
-
-	handlers := make([]string, 0)
-	for opcode, ev := range iface.events {
-		handlers = append(handlers, fmt.Sprintf("%s_%s", iname, ev.name))
-
-		//// Make listener type and adder	
-		buf.WriteString(fmt.Sprintf(`
-type %s%s struct {`, tiname, makeInterfaceName(ev.name)))
-		for _, arg := range ev.args {
-			buf.WriteString(fmt.Sprintf(`
-	%s %s`, makeInterfaceName(fixVarName(arg.name)), getType(arg.t, arg.iface)))
-		}
-
-		buf.WriteString(fmt.Sprintf(`
-}
-
-func (%s *%s) Add%sListener(channel chan interface{}) {
-	%s.listeners[%d] = append(%s.listeners[%d], channel)
-	addListener(channel)
-}
-`, vname, tiname, makeInterfaceName(ev.name), vname, opcode, vname, opcode))
-
-		//// Event handler
-		argstrs := make([]string, 0)
-		argstrs = append(argstrs, fmt.Sprint("\"",ev.name,"\""))
-		var an string
-		for _,arg := range ev.args {
-			if arg.t == "object" {
-				an = fmt.Sprintf("%s.Id()", fixVarName(arg.name))
-			} else if arg.t == "new_id" {
-				an = fmt.Sprintf("\"new id\", %s.Id()", fixVarName(arg.name))
-			} else {
-				an = fixVarName(arg.name)
-			}
-			argstrs = append(argstrs, an)
-		}
-		argstr := strings.Join(argstrs, ", ")
-
-		buf.WriteString(fmt.Sprintf(`
-func %s_%s(%s *%s, msg message) {
-	var data %s%s
-`, iname, ev.name, vname, tiname, tiname, makeInterfaceName(ev.name)))
-//		if len(ev.args) > 0 {
-//			buf.WriteString(`	buf := bytes.NewBuffer(msg)
-//
-//		}
-		// Func body
-		for _, arg := range ev.args {
-			name := fixVarName(arg.name)
-			obj := "not"
-			var fname string
-			switch arg.t {
-			case "fixed":
-				fname = "readFixed"
-			case "uint":
-				fname = "readUint32"
-			case "int":
-				fname = "readInt32"
-			case "object":
-				obj = "old"
-			case "fd":
-				obj = "fd"
-			case "new_id":
-				obj = "new"
-			case "string":
-				fname = "readString"
-				name = fmt.Sprintf("_,%s",name)
-			case "array":
-				fname = "readArray"
-			default:
-				fname = "unknownRead"
-			}
-
-            // This is a file descriptor
-            if obj == "fd" {
-                buf.WriteString(fmt.Sprintf(`
-    %s := msg.fd
-`, name))
-			// If it is an object we need to do some other stuff
-            } else if obj != "not" {
-				buf.WriteString(fmt.Sprintf(`
-	%sid, err := readInt32(msg.buf)
-	if err != nil {
-		// XXX Error handling
-	}`, name))
-
-				// Type Object is a special thing
-				if getType(arg.t, arg.iface) == "Object" {
-					buf.WriteString(fmt.Sprintf(`
-	var %s Object`, name))
-				} else {
-					buf.WriteString(fmt.Sprintf(`
-	%s := new(%s)`, name, strings.Replace(getType(arg.t, arg.iface), "*", "", 1)))
-				}
-
-				// This is an old object which we should use getObject for
-				if obj == "old" {
-					buf.WriteString(fmt.Sprintf(`
-	%sobj := getObject(%sid)
-	if %sobj == nil {
-		return
-	}
-	%s = %sobj.(%s)
-`, name, name, name, name, name, getType(arg.t, arg.iface)))
-				// This is a new object
-				} else if obj == "new" {
-					buf.WriteString(fmt.Sprintf(`
-	setObject(%sid, %s)
-`, name, name))
-				}
-
-            // Just a regular value
-			} else {
-				buf.WriteString(fmt.Sprintf(`
-	%s,err := %s(msg.buf)
-	if err != nil {
-		// XXX Error handling
-	}
-`, name, fname))
-			}
-
-			buf.WriteString(fmt.Sprintf(`	data.%s = %s
-`, makeInterfaceName(fixVarName(arg.name)), fixVarName(arg.name)))
-		}
-
-		buf.WriteString(fmt.Sprintf(`
-	for _,channel := range %s.listeners[%d] {
-		go func() {
-			channel <- data
-		} ()
-	}
-	printEvent("%s", %s, %s)
-}
-`, vname, opcode, iname, vname, argstr))
-
-	}
-
-	// Constructor
-	buf.WriteString(fmt.Sprintf(`
-func New%s() (%s *%s) {
-	%s = new(%s)
-	%s.listeners = make(map[int16][]chan interface{}, 0)
-`, tiname, vname, tiname, vname, tiname, vname))
-	for _,handler := range handlers {
-		buf.WriteString(fmt.Sprintf(`
-	%s.events = append(%s.events, %s)`, vname, vname, handler))
-	}
-	buf.WriteString(fmt.Sprintf(`
-	return
 }
 
 func (%s *%s) SetId(id int32) {
@@ -444,13 +298,184 @@ func (%s *%s) SetId(id int32) {
 
 func (%s *%s) Id() int32 {
 	return %s.id
-}`, vname, tiname, vname, vname, tiname, vname))
-
-	return
 }
 
-func getType(t string, iface string) string {
-	switch t {
+func (%s *%s) Name() string {
+    return %s.name
+}
+`,
+iface.capName,
+listener,
+iface.varName, iface.capName,
+iface.capName, iface.varName, iface.capName,
+iface.varName, iface.capName,
+iface.varName, iface.capName,
+makelistener,
+appendstr,
+iface.varName, iface.capName,
+iface.varName,
+iface.varName, iface.varName,
+iface.varName, iface.capName,
+iface.varName,
+iface.varName, iface.capName,
+iface.varName,
+iface.varName, iface.capName,
+iface.varName)
+}
+
+func PrintRequests(iface Interface, buffer *bytes.Buffer) {
+	for _,req := range iface.requests {
+        // Make parameter and argument string
+        params := make([]string, 0, len(req.args))
+        args := make([]string, 0, len(req.args))
+        for _,arg := range req.args {
+            params = append(params, fmt.Sprintf("%s %s", arg.name, getArgType(arg)))
+            args = append(args, arg.name)
+        }
+
+
+        fmt.Fprintf(buffer,
+`
+func (%s *%s) %s(%s) {
+    sendrequest(%s, "%s_%s", %s)
+}
+`,
+        iface.varName, iface.capName, req.capName, strings.Join(params, ", "),
+        iface.varName, iface.rawName, req.name, strings.Join(args, ", "))
+        }
+}
+
+func PrintEvents(iface Interface, buffer *bytes.Buffer) {
+    for _,event := range iface.events {
+        // Make string to describe fields
+        args := make([]string, 0, len(event.args))
+        for _,arg := range event.args {
+            args = append(args, fmt.Sprintf("%s %s", arg.capName, getArgType(arg)))
+        }
+        fields := strings.Join(args, "\n\t")
+
+        datas := make([]string, 0, len(event.args))
+        for _,arg := range event.args {
+            datas = append(datas, getDataFetch(arg))
+        }
+        data := strings.Join(datas, "\n");
+
+        fmt.Fprintf(buffer,
+`
+type %s%s struct {
+    %s
+}
+
+func (%s *%s) Add%sListener(channel chan %s%s) {
+    %s.%sListeners = append(%s.%sListeners, channel)
+}
+
+func %s%s(%s *%s, msg message) (err error) {
+    var data %s%s
+%s
+
+    // Dispatch events
+    for _,channel := range %s.%sListeners {
+        go func () {
+            channel <- data
+        } ()
+    }
+    return
+}
+`,
+        iface.capName, event.capName,
+        fields,
+        iface.varName, iface.capName, event.capName, iface.capName, event.capName,
+        iface.varName, event.listenName, iface.varName, event.listenName,
+        iface.priName, event.capName, iface.varName, iface.capName,
+        iface.capName, event.capName,
+        data,
+        iface.varName, event.listenName)
+    }
+}
+
+func getDataFetch(arg Arg) string {
+    return fmt.Sprintf(`
+    // Read %s
+    %s,err := %s
+    if err != nil {
+        return
+    }
+    %s`,
+    arg.name,
+    arg.name, getFuncCall(arg),
+    getPostFetch(arg))
+}
+
+func PrintSignatures(ifaces []Interface, buffer *bytes.Buffer) {
+    signatures := make([]string,0)
+    for _,iface := range ifaces {
+        for opcode,req := range iface.requests {
+            signatures = append(signatures, fmt.Sprintf(
+`%ssignatures["%s_%s"] = Signature{%d, "%s"}`, "\t", iface.rawName, req.name, opcode, req.signature))
+        }
+        signatures = append(signatures, "")
+    }
+    signaturestr := strings.Join(signatures, "\n")
+    fmt.Fprintf(buffer,
+`package gowl
+
+type Signature struct {
+    opcode int16
+    signature string
+}
+
+var signatures map[string]Signature
+
+func init() {
+    signatures = make(map[string]Signature, 0)
+%s
+}`, signaturestr)
+    return
+}
+
+func getPostFetch(arg Arg) string {
+    switch arg.t {
+    case "object":
+        return fmt.Sprintf(
+    `%sObj := getObject(%s)
+    data.%s = %sObj.(%s)`,
+        arg.name, arg.name,
+        arg.capName, arg.name,getArgType(arg))
+    case "new_id":
+        return fmt.Sprintf(
+    `%sObj := new(%s)
+    setObject(%s, %sObj)
+    data.%s = %sObj`,
+        arg.name, getArgType(arg)[1:], // Will this always work?
+        arg.name, arg.name,
+        arg.capName, arg.name)
+    default:
+        return fmt.Sprintf("data.%s = %s", arg.capName, arg.name)
+    }
+    return "never"
+}
+
+func getFuncCall(arg Arg) string {
+    switch arg.t {
+    case "int", "object", "new_id":
+        return "readInt32(msg.buf)"
+    case "uint":
+        return "readUint32(msg.buf)"
+    case "fd":
+        return "msg.fd, nil"
+    case "array":
+        return "readArray(msg.buf)"
+    case "string":
+        return "readString(msg.buf)"
+    case "fixed":
+        return "readFixed(msg.buf)"
+    }
+    return arg.t
+}
+
+func getArgType(arg Arg) string {
+	switch arg.t {
 	case "fixed":
 		return "int32"
 	case "uint":
@@ -462,13 +487,35 @@ func getType(t string, iface string) string {
 	case "array":
 		return "[]interface{}"
 	case "object","new_id":
-		typ := fmt.Sprintf("*%s", makeInterfaceName(strings.Replace(iface, "wl_", "",1)))
-		if typ == "*Object" {
+		typ := fmt.Sprintf("*%s", makeInterfaceName(arg.iface))
+		if typ == "*" {
 			return "Object"
 		}
 		return typ
 	}
-	return t
+	return arg.t
+}
+
+func getArgSignature(arg Arg) string {
+    switch arg.t {
+    case "int":
+        return "i"
+    case "uint":
+        return "u"
+    case "array":
+        return "a"
+    case "object":
+        return "o"
+    case "new_id":
+        return "n"
+    case "string":
+        return "s"
+    case "fixed":
+        return "f"
+    case "fd":
+        return "h"
+    }
+    return "never"
 }
 
 func fixVarName(n string) string {
@@ -479,6 +526,7 @@ func fixVarName(n string) string {
 }
 
 func makeInterfaceName(n string) string {
+    n = strings.Replace(n, "wl_", "", 1)
 	parts := strings.Split(n, "_")
 	for i,s := range parts {
 		parts[i] = strings.Title(s)

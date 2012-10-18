@@ -21,5 +21,6 @@ type Object interface {
 	HandleEvent(msg message)
 	SetId(id int32)
 	Id() int32
+    Name() string
 }
 
